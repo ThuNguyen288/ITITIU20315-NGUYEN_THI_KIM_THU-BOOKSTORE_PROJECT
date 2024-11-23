@@ -1,29 +1,31 @@
-import mysql from 'mysql2/promise'; 
+import db from '../dbConect'
 export async function POST(req) {
   try {
     const body = await req.json();
     console.log('Request Body:', body); // Log incoming data
 
-    const { email, password, name, dateOfBirth, address } = body;
+    const { email, password, name} = body;
 
-    if (!email || !password || !name || !dateOfBirth || !address) {
+    if (!email || !password || !name) {
       console.error('Missing fields:', body);
       return new Response(JSON.stringify({ error: 'All fields are required' }), { status: 400 });
     }
 
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-    });
-
     console.log('Database connected successfully');
 
+    const [rows] = await db.query('SELECT * FROM customers WHERE Email = ?', [email]);
+    console.log('Database query result:', rows);
+
+   if (rows.length === 1) {
+  return new Response(JSON.stringify({ error: 'Email already exists' }), { status: 409 });
+}
+
+  
     const [result] = await connection.execute(
-      'INSERT INTO customers (Name, Password, Email, DateOfBirth, Address, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())',
-      [name, password, email, dateOfBirth, address]
+      'INSERT INTO customers (Name, Password, Email, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+      [name, password, email]
     );
+    
 
     console.log('Database Insertion Result:', result); // Log the result
 

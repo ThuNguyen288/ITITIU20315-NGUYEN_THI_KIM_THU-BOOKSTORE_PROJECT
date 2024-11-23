@@ -13,18 +13,16 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [address, setAddress] = useState('');
   const [login, setLogin] = useState('');
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !password || !name || !dateOfBirth || !address) {
+    if (!email || !password || !name ) {
       alert('All fields are required');
       return;
     }
 
-    const userData = { email, password, name, dateOfBirth, address };
+    const userData = { email, password, name };
 
     try {
       const response = await fetch('/api/register', {
@@ -82,28 +80,6 @@ export default function SignUp() {
             id="inputName"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-10">
-          <label htmlFor="inputDateOfBirth" className="form-label">Date of Birth</label>
-          <input
-            type="date"
-            className="form-control"
-            id="inputDateOfBirth"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-10">
-          <label htmlFor="inputAddress" className="form-label">Address</label>
-          <input
-            type="text"
-            className="form-control"
-            id="inputAddress"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
             required
           />
         </div>

@@ -1,6 +1,7 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
+import Logo from '/public/Logo/logo.png';
 import {
   Dialog,
   DialogPanel,
@@ -11,50 +12,58 @@ import {
   PopoverButton,
   PopoverGroup,
   PopoverPanel,
-} from '@headlessui/react'
+} from '@headlessui/react';
 import {
-  ArrowPathIcon,
-  BackwardIcon,
   Bars3Icon,
   BookmarkIcon,
   BookOpenIcon,
   ChartPieIcon,
-  CursorArrowRaysIcon,
-  FingerPrintIcon,
-  PencilIcon,
   ShoppingBagIcon,
-  SquaresPlusIcon,
+  UserIcon,
+  PencilIcon,
   XMarkIcon,
-} from '@heroicons/react/24/outline'
-import { ChevronDownIcon, PhoneIcon, PlayCircleIcon } from '@heroicons/react/20/solid'
-import Link from 'next/link'
+} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useAuth } from '../context/AuthContext'; // Import the context
 
+// Books' categories
 const books = [
   { name: 'Novel', href: '#', icon: BookmarkIcon },
   { name: 'Fiction', href: '#', icon: BookOpenIcon },
   { name: 'Comic', href: '#', icon: BookOpenIcon },
-]
+];
+
+// Pens' categories
 const Pens = [
-    { name: 'Pen', href: '#', icon: PencilIcon },
-    { name: 'Pencil', href: '#', icon: PencilIcon },
-    { name: 'Color', href: '#', icon: PencilIcon },
-  ]
+  { name: 'Pen', href: '#', icon: PencilIcon },
+  { name: 'Pencil', href: '#', icon: PencilIcon },
+  { name: 'Color', href: '#', icon: PencilIcon },
+];
+
+// Header Begin
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { isAuthenticated, login, logout } = useAuth(); // Use auth context
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Scale for mobile screen
+
+  const handleLogout = () => {
+    logout();
+    // Optional: Redirect to the home or login page
+  };
 
   return (
     <header className="bg-white">
       <nav aria-label="Global" className="mx-auto flex max-w-100 items-center justify-between p-6 lg:px-8">
-        <div className="flex lg:flex-1">
+        {/* Logo Start */}
+        <div className="flex lg:flex-1 logo">
           <a href="#" className="-m-1.5 p-1.5">
             <span className="sr-only">Your Company</span>
-            <img
-              alt=""
-              src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-              className="h-8 w-auto"
-            />
+            <Image alt="Your Company" src={Logo} className="h-8 w-auto" />
           </a>
         </div>
+        {/* Logo end */}
+
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -66,15 +75,15 @@ export default function Header() {
           </button>
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
+          {/* Books */}
           <Popover className="relative">
             <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
               Books
               <ChevronDownIcon aria-hidden="true" className="size-5 flex-none text-gray-400" />
             </PopoverButton>
-
             <PopoverPanel
               transition
-              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in"
+              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5"
             >
               <div className="p-4">
                 {books.map((item) => (
@@ -90,7 +99,6 @@ export default function Header() {
                         {item.name}
                         <span className="absolute inset-0" />
                       </a>
-                      <p className="mt-1 text-gray-600">{item.description}</p>
                     </div>
                   </div>
                 ))}
@@ -98,15 +106,15 @@ export default function Header() {
             </PopoverPanel>
           </Popover>
 
+          {/* Pens */}
           <Popover className="relative">
             <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
               Pens
               <ChevronDownIcon aria-hidden="true" className="size-5 flex-none text-gray-400" />
             </PopoverButton>
-
             <PopoverPanel
               transition
-              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in"
+              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5"
             >
               <div className="p-4">
                 {Pens.map((item) => (
@@ -122,7 +130,6 @@ export default function Header() {
                         {item.name}
                         <span className="absolute inset-0" />
                       </a>
-                      <p className="mt-1 text-gray-600">{item.description}</p>
                     </div>
                   </div>
                 ))}
@@ -134,92 +141,24 @@ export default function Header() {
             Stationaries
           </a>
         </PopoverGroup>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-        <Link href="pages/login" className="text-sm/6 font-semibold text-gray-900">
-            Log in <span aria-hidden="true">&rarr;</span>
-        </Link>
 
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+          {!isAuthenticated ? (
+            <Link href="/pages/login" className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600">
+              <UserIcon className="h-6 w-6 mr-2" />
+              Login
+            </Link>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600"
+            >
+              <UserIcon className="h-6 w-6 mr-2" />
+              Logout
+            </button>
+          )}
         </div>
       </nav>
-      <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
-        <div className="fixed inset-0 z-10" />
-        <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-          <div className="flex items-center justify-between">
-            <a href="#" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
-              <img
-                alt=""
-                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                className="h-8 w-auto"
-              />
-            </a>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(false)}
-              className="-m-2.5 rounded-md p-2.5 text-gray-700"
-            >
-              <span className="sr-only">Close menu</span>
-              <XMarkIcon aria-hidden="true" className="size-6" />
-            </button>
-          </div>
-          <div className="mt-6 flow-root">
-            <div className="-my-6 divide-y divide-gray-500/10">
-              <div className="space-y-2 py-6">
-                <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
-                    Books
-                    <ChevronDownIcon aria-hidden="true" className="size-5 flex-none group-data-[open]:rotate-180" />
-                  </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    {[...books].map((item) => (
-                      <DisclosureButton
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-lg py-2 pl-6 pr-3 text-sm/7 font-semibold text-gray-900 hover:bg-gray-50"
-                      >
-                        {item.name}
-                      </DisclosureButton>
-                    ))}
-                  </DisclosurePanel>
-                </Disclosure>
-                <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
-                    Pens
-                    <ChevronDownIcon aria-hidden="true" className="size-5 flex-none group-data-[open]:rotate-180" />
-                  </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    {[...Pens].map((item) => (
-                      <DisclosureButton
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-lg py-2 pl-6 pr-3 text-sm/7 font-semibold text-gray-900 hover:bg-gray-50"
-                      >
-                        {item.name}
-                      </DisclosureButton>
-                    ))}
-                  </DisclosurePanel>
-                </Disclosure>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Stationaries
-                </a>
-              </div>
-              <div className="py-6">
-                <a
-                  href="src/app/pages/Login.js"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Log in
-                </a>
-              </div>
-            </div>
-          </div>
-        </DialogPanel>
-      </Dialog>
     </header>
-  )
+  );
 }
