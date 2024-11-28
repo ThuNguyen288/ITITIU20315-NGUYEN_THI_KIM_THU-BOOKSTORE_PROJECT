@@ -6,9 +6,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <div className="grid-cols-4 grid">
+        <div className="grid-cols-5 grid">
             <Sidebar className = ""/>
-            <div className="col-span-3">
+            <div className="col-span-4">
                 {children}
             </div>
         </div>
