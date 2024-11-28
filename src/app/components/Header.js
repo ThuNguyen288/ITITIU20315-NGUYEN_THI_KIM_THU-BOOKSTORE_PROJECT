@@ -1,6 +1,7 @@
-'use client';
-
+'use client'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { useState } from 'react';
+import { useEffect } from 'react';
 import Logo from '/public/Logo/logo.png';
 import {
   Dialog,
@@ -22,11 +23,13 @@ import {
   UserIcon,
   PencilIcon,
   XMarkIcon,
+  ChevronDownIcon
+
 } from '@heroicons/react/24/outline';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../context/AuthContext'; // Import the context
+
 
 // Books' categories
 const books = [
@@ -42,15 +45,32 @@ const Pens = [
   { name: 'Color', href: '#', icon: PencilIcon },
 ];
 
+const accountGroup = [
+  { name: 'Account', href: '#' },
+  { name: 'Settings', href: '#' },
+  { name: 'Logout', href: '#' },
+
+]
+
 // Header Begin
 export default function Header() {
   const { isAuthenticated, login, logout } = useAuth(); // Use auth context
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Scale for mobile screen
+  const [roleId, setRoleId] = useState(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      setRoleId(user.role_id); // Set the role_id state from localStorage
+    }
+  }, []);
 
   const handleLogout = () => {
     logout();
-    // Optional: Redirect to the home or login page
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
+  
 
   return (
     <header className="bg-white">
@@ -144,18 +164,72 @@ export default function Header() {
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {!isAuthenticated ? (
-            <Link href="/pages/login" className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600">
+            <Link href="/pages/auth/login" className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600">
               <UserIcon className="h-6 w-6 mr-2" />
               Login
             </Link>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600"
-            >
-              <UserIcon className="h-6 w-6 mr-2" />
-              Logout
-            </button>
+            <div className='flex'>
+              <button
+                className="items-center hover:text-indigo-600 px-3"
+              >
+                <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
+              </button>
+              <Menu as="div" className="relative inline-block text-left">
+                <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-gray-300 hover:bg-gray-50">
+                  <UserIcon className="h-6 w-6" />
+                </MenuButton>
+                <MenuItems
+                  className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+                >
+                  <div className="py-1">
+                    {roleId === 2 && (
+                        <MenuItem>
+                          {({ active }) => (
+                            <Link
+                              href="/pages/main/admin/dashboard"
+                              className={`${
+                                active ? 'bg-gray-100' : ''
+                              } block w-full text-left p-2 rounded-md`}
+                            >
+                              Admin
+                            </Link>
+                          )}
+                        </MenuItem>
+                    )}
+                    {accountGroup.map((item) =>
+                      item.name === 'Logout' ? (
+                        <MenuItem key={item.name}>
+                          {({active}) => (
+                            <button
+                              onClick={handleLogout}
+                              className={`${
+                                active ? 'bg-gray-100' : ''
+                              } block w-full text-left p-2 rounded-md`}
+                            >
+                              {item.name}
+                            </button>
+                          )}
+                        </MenuItem>
+                      ) : (
+                        <MenuItem key={item.name}>
+                          {({active}) => (
+                            <Link
+                              href={item.href}
+                              className={`${
+                                active ? 'bg-gray-100' : ''
+                              } block w-full text-left p-2 rounded-md`}
+                            >
+                              {item.name}
+                            </Link>
+                          )}
+                        </MenuItem>
+                      )
+                    )}
+                  </div>
+                </MenuItems>
+              </Menu>
+            </div>
           )}
         </div>
       </nav>

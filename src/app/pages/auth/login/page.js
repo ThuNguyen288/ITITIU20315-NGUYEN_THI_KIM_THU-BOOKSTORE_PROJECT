@@ -29,8 +29,12 @@ export default function Login() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      login(); // Set user as authenticated
-      router.push('/'); // Redirect to dashboard
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+  
+      login(data.user); // Set user as authenticated
+
+      router.push('/pages/main/customer/dashboard'); // Redirect to dashboard
     } catch (err) {
       setError(err.message);
     }
@@ -85,7 +89,7 @@ export default function Login() {
         </form>
         <p className="mt-10 text-center text-sm text-gray-500">
           Do not have an account?{' '}
-          <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
+          <Link href="./register" className="font-semibold text-indigo-600 hover:text-indigo-500">
             Register
           </Link>
         </p>
