@@ -1,13 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '/src/app/context/AuthContext'; // Import useAuth
+import { useAuth } from '/src/app/context/AuthContext'; // Import context
 import Link from 'next/link';
 import Image from 'next/image';
 import Logo from '/public/Logo/logo.png';
 
 export default function Login() {
-  const { login } = useAuth(); // Use the login function from context
+  const { login } = useAuth(); // Sử dụng function login từ context
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +29,13 @@ export default function Login() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
-  
-      login(data.user); // Set user as authenticated
+      // Lưu thông tin user vào localStorage
+      localStorage.setItem('customerId', data.user.id);
+      localStorage.setItem('roleId', data.user.role_id);
+      console.log(localStorage);
 
-      router.push('/pages/main/customer/dashboard'); // Redirect to dashboard
+      login(); // Set user as authenticated
+      router.push('/pages/main/customer/dashboard'); // Redirect tới dashboard
     } catch (err) {
       setError(err.message);
     }

@@ -17,7 +17,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/pages/main/dashboard');
+    router.push('/pages/main/customer/dashboard');
   }, [router]);
 
   return null;

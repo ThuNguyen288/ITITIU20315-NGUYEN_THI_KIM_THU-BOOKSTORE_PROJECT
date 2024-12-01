@@ -54,22 +54,21 @@ const accountGroup = [
 
 // Header Begin
 export default function Header() {
-  const { isAuthenticated, login, logout } = useAuth(); // Use auth context
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Scale for mobile screen
-  const [roleId, setRoleId] = useState(null);
+  const { isAuthenticated, logout } = useAuth(); // Sử dụng context
+  const [roleId, setRoleId] = useState(0);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      setRoleId(user.role_id); // Set the role_id state from localStorage
+    const storedRoleId = localStorage.getItem('roleId');
+    if (storedRoleId) {
+      setRoleId(Number(storedRoleId)); // Lấy roleId từ localStorage
     }
   }, []);
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.clear(); // Remove all items from localStorage
   };
+
   
 
   return (
