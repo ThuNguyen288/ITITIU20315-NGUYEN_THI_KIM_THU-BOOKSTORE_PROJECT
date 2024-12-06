@@ -9,7 +9,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { name: 'Dashboard', href: './dashboard', icon: HomeIcon },
-    { name: 'Products', href: './product', icon: BookOpenIcon },
+    { name: 'Products', href: './product/ShowProduct', icon: BookOpenIcon },
     { name: 'Orders', href: '#', icon: ShoppingBagIcon },
     { name: 'Account', href: '#', icon: UserIcon },
     { name: '', href: '../customer/dashboard', icon: BackwardIcon },
