@@ -12,7 +12,7 @@ export default function Sidebar() {
     { name: 'Products', href: './product/ShowProduct', icon: BookOpenIcon },
     { name: 'Orders', href: '#', icon: ShoppingBagIcon },
     { name: 'Account', href: '#', icon: UserIcon },
-    { name: '', href: '../customer/dashboard', icon: BackwardIcon },
+    { name: '', href: '../../customer/dashboard', icon: BackwardIcon },
 
   ];
 

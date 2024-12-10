@@ -1,10 +1,14 @@
 import db from '../dbConect'
+import bcrypt from 'bcrypt';
+
 export async function POST(req) {
   try {
+    const saltRounds = 10;
     const body = await req.json();
     console.log('Request Body:', body); // Log incoming data
 
     const { email, password, name} = body;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     if (!email || !password || !name) {
       console.error('Missing fields:', body);
@@ -21,15 +25,15 @@ export async function POST(req) {
 }
 
   
-    const [result] = await connection.execute(
+    const [result] = await db.execute(
       'INSERT INTO customers (Name, Password, Email, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
-      [name, password, email]
+      [name, hashedPassword, email]
     );
     
 
     console.log('Database Insertion Result:', result); // Log the result
 
-    await connection.end();
+    await db.end();
 
     return new Response(
       JSON.stringify({ message: 'User registered successfully', userId: result.insertId }),

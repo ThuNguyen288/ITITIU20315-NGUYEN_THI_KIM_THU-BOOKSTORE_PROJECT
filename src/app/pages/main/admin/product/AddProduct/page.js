@@ -35,8 +35,12 @@ export default function AdminProductInsert() {
   // Handle image upload
   const handleImageChange = (e) => {
     const files = e.target.files;
-    setImages([...images, ...files]);
+    const fileURLs = [...files].map((file) => ({
+      url: URL.createObjectURL(file),
+    }));
+    setImages([...images, ...fileURLs]);
   };
+  
 
   // Handle checkbox change for tags
   const handleTagChange = (e) => {
@@ -65,8 +69,9 @@ export default function AdminProductInsert() {
       author,
       publishYear,
       tags: selectedTags,  // Send selected tags
-      images: images,
-    };
+      images: images.map((image) => ({ url: image.url })),
+      };
+
     console.log("Product Data: ", productData);  // Debugging
 
     try {
@@ -224,7 +229,7 @@ export default function AdminProductInsert() {
         <div>
           <label className="block text-sm font-medium text-gray-700">Product Images</label>
           <input
-            type = "image"
+            type = "file"
             multiple
             onChange={handleImageChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"

@@ -81,23 +81,25 @@ export async function POST(req) {
     }
 
     // Thêm ảnh cho sản phẩm
-if (images && images.length > 0) {
-  await Promise.all(
-    images.map(async (image, index) => {
-      // Kiểm tra nếu image.url có giá trị hợp lệ
-      if (!image.url) {
-        throw new Error('Image URL is required');
-      }
-
-      const isPrimary = index === 0 ? 1 : 0; // Đánh dấu ảnh đầu tiên là ảnh chính
-
-      await db.execute(
-        'INSERT INTO productimages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, ?)',
-        [product.insertId, image.url, isPrimary]
+    if (images && images.length > 0) {
+      await Promise.all(
+        images.map(async (image, index) => {
+          const imageURL = typeof image === 'string' ? image : image.url; // Hỗ trợ cả trường hợp `string` hoặc `object`
+          
+          if (!imageURL) {
+            throw new Error('Image URL is required');
+          }
+    
+          const isPrimary = index === 0 ? 1 : 0; // Đánh dấu ảnh đầu tiên là ảnh chính
+    
+          await db.execute(
+            'INSERT INTO productimages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, ?)',
+            [product.insertId, imageURL, isPrimary]
+          );
+        })
       );
-    })
-  );
-}
+    }
+    
 
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
