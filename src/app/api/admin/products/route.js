@@ -9,9 +9,21 @@ export async function GET(req) {
     // Lấy tags từ bảng tags
     const [tags] = await db.execute('SELECT * FROM tags');
 
-    // Trả về danh mục và tags trong một response
+    // Lấy all products
+    
+    const [products] = await db.execute(` 
+      SELECT
+      p.*,                
+      pi.ImageURL AS image 
+      FROM products p
+    LEFT JOIN productimages pi
+    ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1;
+      `);
+
+      
+    // Trả về sản phẩm, danh mục và tags trong một response
     return new Response(
-      JSON.stringify({ categories, tags }), 
+      JSON.stringify({ categories, tags, products}), 
       { status: 200 }
     );
   } catch (err) {
@@ -66,7 +78,7 @@ export async function POST(req) {
         'INSERT INTO pens (ProductID, PenType, InkColor) VALUES (?, ?, ?)',
         [product.insertId, penType, inkColor]
       );
-    }
+    } 
 
     // Thêm các tag vào bảng `product_tag` (nếu có)
     if (Array.isArray(tags) && tags.length > 0) {
@@ -80,28 +92,22 @@ export async function POST(req) {
       );
     }
 
-    // Thêm ảnh cho sản phẩm
-    if (images && images.length > 0) {
+    // API: Thêm ảnh cho sản phẩm (sử dụng Cloudinary)
+    if (images && Array.isArray(images) && images.length > 0) {
       await Promise.all(
         images.map(async (image, index) => {
-          const imageURL = typeof image === 'string' ? image : image.url; // Hỗ trợ cả trường hợp `string` hoặc `object`
-          
-          if (!imageURL) {
+          if (!image) {
             throw new Error('Image URL is required');
           }
-    
-          const isPrimary = index === 0 ? 1 : 0; // Đánh dấu ảnh đầu tiên là ảnh chính
-    
+          const isPrimary = index === 0 ? 1 : 0;
           await db.execute(
             'INSERT INTO productimages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, ?)',
-            [product.insertId, imageURL, isPrimary]
+            [product.insertId, image, isPrimary]
           );
         })
       );
     }
     
-
-
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("Error adding product:", err);

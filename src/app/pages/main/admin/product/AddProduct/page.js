@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '/src/app/context/AuthContext'; // Import context
+import axios from "axios";
 
 export default function AdminProductInsert() {
   const { isAuthenticated } = useAuth();
@@ -32,14 +33,40 @@ export default function AdminProductInsert() {
     fetchCategoriesAndTags();
   }, []);
 
-  // Handle image upload
-  const handleImageChange = (e) => {
-    const files = e.target.files;
-    const fileURLs = [...files].map((file) => ({
-      url: URL.createObjectURL(file),
-    }));
-    setImages([...images, ...fileURLs]);
-  };
+// Hàm xử lý chọn ảnh
+const handleImageChange = async (e) => {
+  const files = e.target.files;
+
+  if (files) {
+    const uploadedImages = [];
+
+    for (const file of files) {
+      const imageUrl = await uploadImageToCloudinary(file);
+      uploadedImages.push(imageUrl);
+    }
+
+    setImages(uploadedImages);  // Updating the images state after upload
+    console.log("Uploaded Images:", uploadedImages);  // Log after the state is updated
+  }
+};
+
+ // Hàm upload ảnh lên Cloudinary
+ const uploadImageToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUD_PRESET);
+
+  try {
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUD_NAME}/image/upload`,
+      formData
+    );
+    return response.data.secure_url; // Trả về URL ảnh từ Cloudinary
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw new Error("Image upload failed");
+  }
+};
   
 
   // Handle checkbox change for tags
@@ -69,7 +96,7 @@ export default function AdminProductInsert() {
       author,
       publishYear,
       tags: selectedTags,  // Send selected tags
-      images: images.map((image) => ({ url: image.url })),
+      images
       };
 
     console.log("Product Data: ", productData);  // Debugging
@@ -229,11 +256,22 @@ export default function AdminProductInsert() {
         <div>
           <label className="block text-sm font-medium text-gray-700">Product Images</label>
           <input
-            type = "file"
+            type="file"
             multiple
             onChange={handleImageChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           />
+          <div className="mt-4">
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-4">
+                {images.map((image, index) => (
+                  <div key={index}>
+                    <img src={image} alt={`Product Image ${index}`} className="w-32 h-32 object-cover rounded-md" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <button type="submit" className="mt-4 w-full bg-indigo-600 text-white p-2 rounded-md">
