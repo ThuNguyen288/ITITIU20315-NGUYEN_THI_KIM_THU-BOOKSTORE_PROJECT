@@ -10,20 +10,22 @@ export default function Banner(){
   </div>
   <div className="carousel-inner">
     <div className="carousel-item active">
-      <Image src={Promo1} className="d-block w-100" alt="..."/>
+      <Image src={Promo1} className="d-block w-10/12 h-70 mx-auto" alt="..."/>
       <div className="carousel-caption d-none d-md-block">
         <h5>First slide label</h5>
         <p>Some representative placeholder content for the first slide.</p>
       </div>
     </div>
     <div className="carousel-item">
-        <Image src={Promo1} className="d-block w-100" alt="..."/>      <div className="carousel-caption d-none d-md-block">
+    <Image src={Promo1} className="d-block w-10/12 h-70 mx-auto" alt="..."/>
+    <div className="carousel-caption d-none d-md-block">
         <h5>Second slide label</h5>
         <p>Some representative placeholder content for the second slide.</p>
       </div>
     </div>
     <div className="carousel-item">
-        <Image src={Promo1} className="d-block w-100" alt="..."/>      <div className="carousel-caption d-none d-md-block">
+    <Image src={Promo1} className="d-block w-10/12 h-70 mx-auto" alt="..."/>
+    <div className="carousel-caption d-none d-md-block">
         <h5>Third slide label</h5>
         <p>Some representative placeholder content for the third slide.</p>
       </div>
