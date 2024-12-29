@@ -1,5 +1,4 @@
-"use client";
-
+'use client';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -7,9 +6,14 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [updatedProduct, setUpdatedProduct] = useState({
+    Name: "",
+    Price: "",
+    Stock: "",
+  });
 
   useEffect(() => {
-    // Fetch products from the backend API
     async function fetchProducts() {
       try {
         const response = await fetch("/api/admin/products"); // Replace with your actual API endpoint
@@ -26,9 +30,68 @@ export default function Products() {
     }
 
     fetchProducts();
-    
   }, []);
-  console.log(products)
+
+  const handleDelete = async (ProductID) => {
+    if (confirm("Are you sure you want to delete this product?")) {
+      try {
+        const response = await fetch(`/api/admin/products/${ProductID}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete product");
+        }
+        // Remove the product from the local state after successful deletion
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.ProductID !== ProductID)
+        );
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  };
+
+  const handleEditClick = (product) => {
+    setEditingProduct(product.ProductID);
+    setUpdatedProduct({
+      Name: product.Name,
+      Price: product.Price,
+      Stock: product.Stock,
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatedProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = async (ProductID) => {
+    try {
+      const response = await fetch(`/api/admin/products/${ProductID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedProduct),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update product");
+      }
+      // Update the product in the local state after successful update
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.ProductID === ProductID ? { ...product, ...updatedProduct } : product
+        )
+      );
+      setEditingProduct(null); // Exit editing mode
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="products">
       <h1 className="text-2xl font-bold text-center mb-6 pt-5">Products</h1>
@@ -42,39 +105,87 @@ export default function Products() {
             <table className="min-w-full border-collapse border border-gray-200 bg-white shadow-md">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Image</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Price</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Stock</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center"></th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-20">ID</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Image</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center">Name</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Price</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Stock</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-60"></th>
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
+                {products.map((product, index) => (
                   <tr key={product.ProductID} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2">{product.ProductID}</td>
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center flex justify-center items-center">
                       <img
                         src={product.image || "https://via.placeholder.com/80"}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded"
+                        alt={product.Name}
+                        className="h-16 rounded"
                       />
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">{product.Name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.Price}</td>
-                    <td
-                      className={`border border-gray-300 px-4 py-2 font-medium ${
+
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      {editingProduct === product.ProductID ? (
+                        <input
+                          type="text"
+                          name="Name"
+                          value={updatedProduct.Name}
+                          onChange={handleInputChange}
+                          className="px-2 py-1 w-40 outline-none"
+                        />
+                      ) : (
+                        product.Name
+                      )}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      {editingProduct === product.ProductID ? (
+                        <input
+                          type="number"
+                          name="Price"
+                          value={updatedProduct.Price}
+                          onChange={handleInputChange}
+                          className="px-2 py-1 w-40 outline-none"
+                        />
+                      ) : (
+                        product.Price
+                      )}
+                    </td>
+                    <td className={`border border-gray-300 px-4 py-2 text-center font-medium ${
                         product.Stock > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {product.Stock}
+                      }`}>
+                      {editingProduct === product.ProductID ? (
+                        <input
+                          type="number"
+                          name="Stock"
+                          value={updatedProduct.Stock}
+                          onChange={handleInputChange}
+                          className="px-2 py-1 w-20 outline-none"
+                        />
+                      ) : (
+                        product.Stock
+                      )}
                     </td>
                     <td className="border border-gray-300 px-4 py-2 text-center space-x-2">
-                      <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
-                        Edit
-                      </button>
-                      <button className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">
+                      {editingProduct === product.ProductID ? (
+                        <button
+                          onClick={() => handleSave(product.ProductID)}
+                          className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleEditClick(product)}
+                          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(product.ProductID)}
+                        className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+                      >
                         Delete
                       </button>
                     </td>
@@ -84,12 +195,13 @@ export default function Products() {
             </table>
           </div>
         )}
-      </div>
-      <Link href="./AddProduct">
+        <Link href="./AddProduct">
         <button className="bg-green-500 text-white px-4 py-2 rounded mt-4 hover:bg-green-600">
           Add Product
         </button>
       </Link>
+      </div>
+      
     </div>
   );
 }

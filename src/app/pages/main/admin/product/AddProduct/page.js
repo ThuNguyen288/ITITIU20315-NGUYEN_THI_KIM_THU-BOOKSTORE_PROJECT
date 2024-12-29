@@ -192,7 +192,7 @@ const handleImageChange = async (e) => {
         {/* Tags Checkbox (multiple select) */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Tags</label>
-          <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
             {tags.map((tag) => (
               <div key={tag.TagID} className="flex items-center">
                 <input

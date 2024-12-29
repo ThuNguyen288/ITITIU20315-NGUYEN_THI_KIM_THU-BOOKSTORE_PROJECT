@@ -31,20 +31,6 @@ import Image from 'next/image';
 import { useAuth } from '../context/AuthContext'; // Import the context
 
 
-// Books' categories
-const books = [
-  { name: 'Novel', href: '#', icon: BookmarkIcon },
-  { name: 'Fiction', href: '#', icon: BookOpenIcon },
-  { name: 'Comic', href: '#', icon: BookOpenIcon },
-];
-
-// Pens' categories
-const Pens = [
-  { name: 'Pen', href: '#', icon: PencilIcon },
-  { name: 'Pencil', href: '#', icon: PencilIcon },
-  { name: 'Color', href: '#', icon: PencilIcon },
-];
-
 const accountGroup = [
   { name: 'Account', href: '#' },
   { name: 'Settings', href: '#' },
@@ -93,74 +79,20 @@ export default function Header() {
             <Bars3Icon aria-hidden="true" className="size-6" />
           </button>
         </div>
-        <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-          {/* Books */}
-          <Popover className="relative">
-            <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
-              Books
-              <ChevronDownIcon aria-hidden="true" className="size-5 flex-none text-gray-400" />
-            </PopoverButton>
-            <PopoverPanel
-              transition
-              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5"
-            >
-              <div className="p-4">
-                {books.map((item) => (
-                  <div
-                    key={item.name}
-                    className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50"
-                  >
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                      <item.icon aria-hidden="true" className="size-6 text-gray-600 group-hover:text-indigo-600" />
-                    </div>
-                    <div className="flex-auto">
-                      <a href={item.href} className="block font-semibold text-gray-900">
-                        {item.name}
-                        <span className="absolute inset-0" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </PopoverPanel>
-          </Popover>
-
-          {/* Pens */}
-          <Popover className="relative">
-            <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
-              Pens
-              <ChevronDownIcon aria-hidden="true" className="size-5 flex-none text-gray-400" />
-            </PopoverButton>
-            <PopoverPanel
-              transition
-              className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5"
-            >
-              <div className="p-4">
-                {Pens.map((item) => (
-                  <div
-                    key={item.name}
-                    className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50"
-                  >
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                      <item.icon aria-hidden="true" className="size-6 text-gray-600 group-hover:text-indigo-600" />
-                    </div>
-                    <div className="flex-auto">
-                      <a href={item.href} className="block font-semibold text-gray-900">
-                        {item.name}
-                        <span className="absolute inset-0" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </PopoverPanel>
-          </Popover>
-
-          <a href="#" className="text-sm/6 font-semibold text-gray-900">
-            Stationaries
-          </a>
-        </PopoverGroup>
-
+        <div className="hidden lg:flex lg:gap-x-12">
+          <Link href="/pages/main/customer/products" className="text-sm/6 font-semibold text-gray-900">
+            All Products
+          </Link>
+          <Link href="#" className="text-sm/6 font-semibold text-gray-900">
+            Books
+          </Link>
+          <Link href="#" className="text-sm/6 font-semibold text-gray-900">
+            Pens
+          </Link>
+          <Link href="#" className="text-sm/6 font-semibold text-gray-900">
+            Others
+          </Link>
+        </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {!isAuthenticated ? (
             <Link href="/pages/auth/login" className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600">
@@ -169,11 +101,9 @@ export default function Header() {
             </Link>
           ) : (
             <div className='flex'>
-              <button
-                className="items-center hover:text-indigo-600 px-3"
-              >
-                <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
-              </button>
+              <Link href="/pages/main/customer/cart" className="flex items-center text-sm font-semibold text-gray">
+                  <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
+              </Link>
               <Menu as="div" className="relative inline-block text-left">
                 <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-gray-300 hover:bg-gray-50">
                   <UserIcon className="h-6 w-6" />
