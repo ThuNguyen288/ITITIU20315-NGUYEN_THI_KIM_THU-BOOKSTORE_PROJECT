@@ -93,7 +93,7 @@ export default function Header() {
                             href="/pages/main/admin/dashboard"
                             className={`${
                               active ? 'bg-gray-100' : ''
-                            } block w-full text-left p-2 rounded-md`}
+                            } block w-full text-left p-2 rounded-md no-underline text-black`}
                           >
                             Admin
                           </Link>
@@ -121,7 +121,7 @@ export default function Header() {
                               href={item.href}
                               className={`${
                                 active ? 'bg-gray-100' : ''
-                              } block w-full text-left p-2 rounded-md`}
+                              } block w-full text-left p-2 rounded-md no-underline text-black`}
                             >
                               {item.name}
                             </Link>

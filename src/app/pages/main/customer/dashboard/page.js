@@ -1,5 +1,6 @@
 "use client"
 import Banner from "@/app/components/Banner";
+import BestSeller from "@/app/components/BestSeller";
 import HotProducts from "@/app/components/HotProducts";
 
 export default function homepage(){
@@ -7,6 +8,7 @@ export default function homepage(){
         <div className="">
             <Banner/>
             <HotProducts/>
+            <BestSeller/>
         </div>
     )
 }

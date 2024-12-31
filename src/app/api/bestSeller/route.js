@@ -10,7 +10,7 @@ export async function GET(req) {
         pi.ImageURL AS image 
       FROM products p
       LEFT JOIN productimages pi ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1
-      ORDER BY p.Clicked DESC
+      ORDER BY p.Sold DESC
       LIMIT 4
     `);
 

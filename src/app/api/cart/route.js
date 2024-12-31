@@ -64,7 +64,6 @@ export async function GET(req) {
       'SELECT * FROM cart WHERE CustomerID = ?',
       [CustomerID]
     );
-    console.log(cart);
 
     if (cart.length === 0) {
       return new Response(
@@ -112,11 +111,11 @@ export async function GET(req) {
   }
 }
 
-// PUT method to update quantity in the cart
-export async function PUT(req) {
-  const { CustomerID, ProductID, Quantity } = await req.json();
+// DELETE method to remove a product from the cart
+export async function DELETE(req) {
+  const { CustomerID, ProductID } = await req.json();
 
-  if (!CustomerID || !ProductID || !Number.isInteger(Quantity)) {
+  if (!CustomerID || !ProductID) {
     return new Response(
       JSON.stringify({ message: 'Invalid or missing required fields.' }),
       { status: 400 }
@@ -124,22 +123,18 @@ export async function PUT(req) {
   }
 
   try {
-    // Update quantity for the given product in the cart
+    // Remove the product from the cart
     await db.execute(
-      `
-      UPDATE cart
-      SET Quantity = GREATEST(0, Quantity + ?)
-      WHERE CustomerID = ? AND ProductID = ?
-      `,
-      [Quantity, CustomerID, ProductID]
+      'DELETE FROM cart WHERE CustomerID = ? AND ProductID = ?',
+      [CustomerID, ProductID]
     );
 
     return new Response(
-      JSON.stringify({ message: 'Quantity updated successfully.' }),
+      JSON.stringify({ message: 'Product removed from cart successfully.' }),
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error updating quantity:', error);
+    console.error('Error removing product from cart:', error);
     return new Response(
       JSON.stringify({ message: 'Internal server error.' }),
       { status: 500 }

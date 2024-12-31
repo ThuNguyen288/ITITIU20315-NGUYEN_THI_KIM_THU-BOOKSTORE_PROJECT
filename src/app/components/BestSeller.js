@@ -5,7 +5,7 @@ import {
     ShoppingBagIcon,  
 } from '@heroicons/react/24/outline';
 
-export default function CustomerProducts() {
+export default function BestSeller() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ export default function CustomerProducts() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await fetch("/api/admin/products");
+        const response = await fetch("/api/bestSeller");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
@@ -30,17 +30,6 @@ export default function CustomerProducts() {
 
     fetchProducts();
   }, []);
-  const incrementClickCount = async (ProductID) => {
-    try {
-      await fetch(`/api/${ProductID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ increment: 1 }),
-      });
-    } catch (err) {
-      console.error('Error updating ClickCount:', err);
-    }
-  };
 
   const handleAddToCart = async (ProductID) => {
     try {
@@ -79,7 +68,7 @@ export default function CustomerProducts() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-center mb-6 mb-10">All Products</h1>
+      <h1 className="text-2xl font-bold text-center mb-6 mb-10">Best Seller</h1>
 
       {showNotification && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg">
@@ -110,9 +99,7 @@ export default function CustomerProducts() {
                     <div className="mt-4 mx-4 flex justify-between">
                     <span className="text-base font-semibold text-gray-900">{product.Price} VND</span>
                     <button
-                        onClick={() => {
-                          handleAddToCart(product.ProductID);
-                          incrementClickCount(product.ProductID)}}
+                        onClick={() => handleAddToCart(product.ProductID)}
                         className="px-4 py-2 rounded text-white hover:bg-blue-700"
                     >
                         <ShoppingBagIcon className="h-4 w-4 text-black" />
