@@ -11,8 +11,8 @@ export default function AdminProductInsert() {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [penType, setPenType] = useState('');
-  const [inkColor, setInkColor] = useState('');
+  const [penType, setPenType] = useState('Ballpoint');
+  const [inkColor, setInkColor] = useState('Blue');
   const [author, setAuthor] = useState('');
   const [publishYear, setPublishYear] = useState('');
   const [categories, setCategories] = useState([]); // Store categories
@@ -211,19 +211,37 @@ const handleImageChange = async (e) => {
 
         {/* Pen Type for Pens */}
         {categoryId === '2' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Pen Type</label>
-            <select
-              value={penType}
-              onChange={(e) => setPenType(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              required
-            >
-              <option value="Ballpoint">Ballpoint</option>
-              <option value="Pencil">Pencil</option>
-              <option value="ColorPen">ColorPen</option>
-            </select>
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Pen Type</label>
+              <select
+                value={penType}
+                onChange={(e) => setPenType(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="Ballpoint">Ballpoint</option>
+                <option value="Pencil">Pencil</option>
+                <option value="Crayon">Crayon</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Pen Type</label>
+              <select
+                value={inkColor}
+                onChange={(e) => setInkColor(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="Blue">Blue</option>
+                <option value="Red">Red</option>
+                <option value="12">12</option>
+                <option value="24">24</option>
+                <option value="48">48</option>
+              </select>
+            </div>
+          </>
+          
         )}
 
         {/* Author and Publish Year for Books */}

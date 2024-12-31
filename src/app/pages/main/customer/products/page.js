@@ -68,7 +68,7 @@ export default function CustomerProducts() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-center mb-6 mb-10">Our Products</h1>
+      <h1 className="text-2xl font-bold text-center mb-6 mb-10">All Products</h1>
 
       {showNotification && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg">
@@ -100,9 +100,9 @@ export default function CustomerProducts() {
                     <span className="text-base font-semibold text-gray-900">{product.Price} VND</span>
                     <button
                         onClick={() => handleAddToCart(product.ProductID)}
-                        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                        className="px-4 py-2 rounded text-white hover:bg-blue-700"
                     >
-                        <ShoppingBagIcon className="h-4 w-4 text-white" />
+                        <ShoppingBagIcon className="h-4 w-4 text-black" />
                     </button>
                     </div>
                 </div>

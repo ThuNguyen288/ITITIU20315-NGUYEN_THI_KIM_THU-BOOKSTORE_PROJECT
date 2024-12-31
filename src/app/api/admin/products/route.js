@@ -43,7 +43,20 @@ export async function POST(req) {
       tags,
       images,
     } = body;
-
+    console.log("Product Data:", {
+      name,
+      description,
+      price,
+      stock,
+      categoryId,
+      penType,
+      inkColor,
+      author,
+      publishYear,
+      tags,
+      images,
+    });
+    
     if (!name || !description || !price || !stock || !categoryId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),

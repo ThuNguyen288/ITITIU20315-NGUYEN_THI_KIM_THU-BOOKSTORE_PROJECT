@@ -1,3 +1,4 @@
+// Updated Cart Page
 'use client';
 import { useState, useEffect } from 'react';
 
@@ -5,8 +6,8 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-  // Fetch cart items and product details from the API
   useEffect(() => {
     async function fetchCartAndProductDetails() {
       try {
@@ -46,17 +47,25 @@ export default function Cart() {
     fetchCartAndProductDetails();
   }, []);
 
-  // Calculate total whenever cartItems changes
   useEffect(() => {
     const calculateTotal = () => {
-      const totalCost = cartItems.reduce((total, item) => {
+      const totalCost = selectedItems.reduce((total, item) => {
         return total + item.Price * item.Quantity;
       }, 0);
       setTotal(totalCost);
     };
 
     calculateTotal();
-  }, [cartItems]); // Recalculate total when cartItems changes
+  }, [selectedItems]);
+
+  const handleSelectItem = (productId) => {
+    const item = cartItems.find((item) => item.ProductID === productId);
+    if (selectedItems.some((selected) => selected.ProductID === productId)) {
+      setSelectedItems((prev) => prev.filter((selected) => selected.ProductID !== productId));
+    } else {
+      setSelectedItems((prev) => [...prev, item]);
+    }
+  };
 
   const handleQuantityChange = async (productId, change) => {
     const updatedItems = cartItems.map((item) =>
@@ -92,10 +101,6 @@ export default function Cart() {
     }
   };
 
-  const handleRemoveItem = (productId) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.ProductID !== productId));
-  };
-
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-center mb-6">Your Cart</h1>
@@ -111,7 +116,13 @@ export default function Cart() {
                 key={item.ProductID}
                 className="flex items-center justify-between border border-gray-300 p-4 rounded-lg"
               >
-                <div className="flex items-center w-24">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.some((selected) => selected.ProductID === item.ProductID)}
+                    onChange={() => handleSelectItem(item.ProductID)}
+                    className="mr-4"
+                  />
                   <img
                     src={item.Image || 'https://via.placeholder.com/80'}
                     alt={item.Name}
@@ -137,19 +148,20 @@ export default function Cart() {
                     +
                   </button>
                 </div>
-                <button
-                  onClick={() => handleRemoveItem(item.ProductID)}
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-24"
-                >
-                  Remove
-                </button>
               </div>
             ))}
           </div>
           <div className="mt-6 text-right">
             <h2 className="text-xl font-bold">Total: ${total.toFixed(2)}</h2>
-            <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-              Checkout
+            <button
+              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+              onClick={() => {
+                localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+                window.location.href = '/checkout';
+              }}
+              disabled={selectedItems.length === 0}
+            >
+              Proceed to Checkout
             </button>
           </div>
         </div>

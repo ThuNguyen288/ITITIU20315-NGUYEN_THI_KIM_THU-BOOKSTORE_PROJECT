@@ -1,4 +1,6 @@
 'use client';
+import HotProducts from '@/app/components/HotProducts';
+import Hot from '@/app/components/Review';
 import React, { useEffect, useState } from 'react';
 
 const ProductDetail = ({ params }) => {
@@ -147,6 +149,8 @@ const ProductDetail = ({ params }) => {
           {notification}
         </div>
       )}
+      <hr className='my-10'></hr>
+      <HotProducts/>
     </div>
   );
 };

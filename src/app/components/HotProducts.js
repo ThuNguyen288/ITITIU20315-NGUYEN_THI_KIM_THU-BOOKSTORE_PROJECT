@@ -5,7 +5,7 @@ import {
     ShoppingBagIcon,  
 } from '@heroicons/react/24/outline';
 
-export default function CustomerProducts() {
+export default function HotProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -100,9 +100,9 @@ export default function CustomerProducts() {
                     <span className="text-base font-semibold text-gray-900">{product.Price} VND</span>
                     <button
                         onClick={() => handleAddToCart(product.ProductID)}
-                        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                        className="px-4 py-2 rounded text-white hover:bg-blue-700"
                     >
-                        <ShoppingBagIcon className="h-4 w-4 text-white" />
+                        <ShoppingBagIcon className="h-4 w-4 text-black" />
                     </button>
                     </div>
                 </div>
