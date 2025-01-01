@@ -11,7 +11,7 @@ export default function Sidebar() {
     { name: 'Dashboard', href: '/pages/main/admin/dashboard', icon: HomeIcon },
     { name: 'Products', href: '/pages/main/admin/product/ShowProduct', icon: BookOpenIcon },
     { name: 'Notification', href: '/pages/main/admin/notification', icon: HomeIcon },
-    { name: 'Orders', href: '/orders', icon: ShoppingBagIcon },
+    { name: 'Orders', href: '/pages/main/admin/orders', icon: ShoppingBagIcon },
     { name: 'Account', href: '/account', icon: UserIcon },
     { name: 'Back to Customer', href: '/pages/main/customer/dashboard', icon: BackwardIcon },
   ];

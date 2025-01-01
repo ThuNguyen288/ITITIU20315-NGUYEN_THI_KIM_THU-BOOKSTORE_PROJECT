@@ -12,7 +12,6 @@ export default function Checkout() {
     const totalCost = items.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
     setTotal(totalCost);
   }, []);
-
   const handlePlaceOrder = async () => {
     try {
       const CustomerID = localStorage.getItem('customerId');
