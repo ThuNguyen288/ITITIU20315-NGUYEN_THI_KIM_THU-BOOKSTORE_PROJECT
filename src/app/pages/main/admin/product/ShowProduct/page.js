@@ -12,16 +12,20 @@ export default function Products() {
     Price: "",
     Stock: "",
   });
+  const [sortConfig, setSortConfig] = useState({
+    key: "Name",
+    direction: "asc",
+  });
 
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await fetch("/api/admin/products"); // Replace with your actual API endpoint
+        const response = await fetch("/api/admin/products");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
         const data = await response.json();
-        setProducts(data.products); // Assuming the response structure has a "products" field
+        setProducts(data.products);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -41,7 +45,6 @@ export default function Products() {
         if (!response.ok) {
           throw new Error("Failed to delete product");
         }
-        // Remove the product from the local state after successful deletion
         setProducts((prevProducts) =>
           prevProducts.filter((product) => product.ProductID !== ProductID)
         );
@@ -80,16 +83,43 @@ export default function Products() {
       if (!response.ok) {
         throw new Error("Failed to update product");
       }
-      // Update the product in the local state after successful update
       setProducts((prevProducts) =>
         prevProducts.map((product) =>
           product.ProductID === ProductID ? { ...product, ...updatedProduct } : product
         )
       );
-      setEditingProduct(null); // Exit editing mode
+      setEditingProduct(null);
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  // Hàm sắp xếp sản phẩm
+  const sortProducts = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+
+    const sortedProducts = [...products].sort((a, b) => {
+      if (key === "Name") {
+        return direction === "asc"
+          ? a.Name.localeCompare(b.Name)
+          : b.Name.localeCompare(a.Name);
+      }
+      if (key === "Price") {
+        return direction === "asc" ? a.Price - b.Price : b.Price - a.Price;
+      }
+      if (key === "Stock") {
+        return direction === "asc" ? a.Stock - b.Stock : b.Stock - a.Stock;
+      }
+      if (key === "Sold") {
+        return direction === "asc" ? a.Sold - b.Sold : b.Sold - a.Sold;
+      }
+      return 0;
+    });
+    setProducts(sortedProducts);
   };
 
   return (
@@ -105,19 +135,61 @@ export default function Products() {
             <table className="min-w-full border-collapse border border-gray-200 bg-white shadow-md">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-center w-20">ID</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Image</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center">Name</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Price</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Stock</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Sold</th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center w-20"
+                  >
+                    ID
+                  </th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center w-28"
+                  >
+                    Image
+                  </th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center cursor-pointer"
+                    onClick={() => sortProducts("Name")}
+                  >
+                    Name{" "}
+                    {sortConfig.key === "Name" && (
+                      <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center w-28 cursor-pointer"
+                    onClick={() => sortProducts("Price")}
+                  >
+                    Price{" "}
+                    {sortConfig.key === "Price" && (
+                      <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center w-28 cursor-pointer"
+                    onClick={() => sortProducts("Stock")}
+                  >
+                    Stock{" "}
+                    {sortConfig.key === "Stock" && (
+                      <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </th>
+                  <th
+                    className="border border-gray-300 px-4 py-2 text-center w-28 cursor-pointer"
+                    onClick={() => sortProducts("Sold")}
+                  >
+                    Sold{" "}
+                    {sortConfig.key === "Sold" && (
+                      <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </th>
                   <th className="border border-gray-300 px-4 py-2 text-center w-60"></th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((product, index) => (
                   <tr key={product.ProductID} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      {index + 1}
+                    </td>
                     <td className="border border-gray-300 px-4 py-2 text-center flex justify-center items-center">
                       <img
                         src={product.image || "https://via.placeholder.com/80"}
@@ -152,9 +224,11 @@ export default function Products() {
                         product.Price
                       )}
                     </td>
-                    <td className={`border border-gray-300 px-4 py-2 text-center font-medium ${
+                    <td
+                      className={`border border-gray-300 px-4 py-2 text-center font-medium ${
                         product.Stock > 0 ? "text-green-600" : "text-red-600"
-                      }`}>
+                      }`}
+                    >
                       {editingProduct === product.ProductID ? (
                         <input
                           type="number"
@@ -199,13 +273,7 @@ export default function Products() {
             </table>
           </div>
         )}
-        <Link href="./AddProduct">
-        <button className="bg-green-500 text-white px-4 py-2 rounded mt-4 hover:bg-green-600">
-          Add Product
-        </button>
-      </Link>
       </div>
-      
     </div>
   );
 }

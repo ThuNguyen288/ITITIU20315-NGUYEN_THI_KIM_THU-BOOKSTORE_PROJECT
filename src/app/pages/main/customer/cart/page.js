@@ -212,7 +212,7 @@ export default function Cart() {
                   {/* Product Information */}
                   <div className="ml-4 w-96">
                     <h2 className="text-lg font-semibold truncate">{item.Name}</h2>
-                    <p className="text-gray-600">${item.Price.toFixed(2)}</p>
+                    <p className="text-gray-600">${item.Price}</p>
                   </div>
   
                   {/* Quantity Buttons */}
@@ -247,7 +247,7 @@ export default function Cart() {
   
           {/* Total and Checkout */}
           <div className="mt-6 text-right">
-            <h2 className="text-xl font-bold">Total: {total.toFixed(2)} VND</h2>
+            <h2 className="text-xl font-bold">Total: {total} VND</h2>
             <button
               className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
               onClick={() => {

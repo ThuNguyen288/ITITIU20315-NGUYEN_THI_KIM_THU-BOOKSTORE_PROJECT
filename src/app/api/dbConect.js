@@ -7,7 +7,7 @@ const db = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     waitForConnections: true, // Đợi kết nối thay vì từ chối nếu không còn kết nối trống
-    connectionLimit: 100, // Số lượng kết nối tối đa trong pool
+    connectionLimit: 10, // Số lượng kết nối tối đa trong pool
     queueLimit: 0, // Số lượng truy vấn tối đa trong hàng đợi (0 = không giới hạn)
   });
 
