@@ -1,6 +1,5 @@
 'use client';
 import HotProducts from '@/app/components/HotProducts';
-import Hot from '@/app/components/Review';
 import React, { useEffect, useState } from 'react';
 
 const ProductDetail = ({ params }) => {
@@ -43,10 +42,8 @@ const ProductDetail = ({ params }) => {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [ProductID]);
-
   const incrementClickCount = async (ProductID) => {
     try {
       await fetch(`/api/${ProductID}`, {

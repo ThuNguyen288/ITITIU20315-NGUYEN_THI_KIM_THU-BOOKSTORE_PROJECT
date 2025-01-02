@@ -1,15 +1,21 @@
 import db from "../../../dbConect";
 
-// PUT method to update product details or increment click count
-export async function PUT(req, { params }) {
+// PUT method to update the order status
+export async function PUT(req, context) {
   try {
-    // Await params to get the ProductID properly
-    const { OrderID } = await params;  
-    const { Status } = await req.json();
+    const params = await context.params; // Ensure `params` is resolved
+    const { OrderID } = params;
+    const { Status } = await req.json(); // Parse JSON body
 
+    // Validate input
+    if (!OrderID || !Status) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input: OrderID and Status are required." }),
+        { status: 400 }
+      );
+    }
 
-    // Update product details if no 'increment'
-    
+    // Update order status
     const [result] = await db.execute(
       "UPDATE orders SET Status = ? WHERE OrderID = ?",
       [Status, OrderID]
@@ -17,45 +23,58 @@ export async function PUT(req, { params }) {
 
     if (result.affectedRows === 0) {
       return new Response(
-        JSON.stringify({ error: "Product not found" }),
+        JSON.stringify({ error: "Order not found" }),
         { status: 404 }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Product updated successfully" }),
+      JSON.stringify({ success: true, message: "Order updated successfully" }),
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error updating product:", err);
+    console.error("Error updating order:", err);
     return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message,
-      }),
+      JSON.stringify({ error: "Internal Server Error", details: err.message }),
       { status: 500 }
     );
   }
 }
 
-// GET method to fetch product details
-export async function GET(req, { params }) {
-  // Await params to ensure ProductID is retrieved properly
-  const { OrderID } = await params;  
-
+// GET method to fetch order and product details
+export async function GET(req, context) {
   try {
-    // Ensure the correct SQL query, parameterized with ProductID
-    const [rows] = await db.execute(`
-      SELECT * FROM orderdetails
-      WHERE OrderID = ?`, [OrderID]);
+    const params = await context.params; // Ensure `params` is resolved
+    const { OrderID } = params;
 
-    if (rows.length === 0) {
-      return new Response(JSON.stringify({ error: "Order not found" }), { status: 404 });
+    if (!OrderID) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input: OrderID is required." }),
+        { status: 400 }
+      );
     }
 
-    return new Response(JSON.stringify({ product: rows[0] }), { status: 200 });
+    // Fetch order details
+    const [orderDetails] = await db.execute(
+      "SELECT * FROM orderdetails WHERE OrderID = ?",
+      [OrderID]
+    );
+
+    if (orderDetails.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Order not found" }),
+        { status: 404 }
+      );
+    }
+    return new Response(
+      JSON.stringify({ orderDetails }),
+      { status: 200 }
+    );
   } catch (err) {
-    console.error("Error fetching order:", err);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+    console.error("Error fetching order or products:", err);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error", details: err.message }),
+      { status: 500 }
+    );
   }
 }

@@ -110,6 +110,7 @@ export default function Products() {
                   <th className="border border-gray-300 px-4 py-2 text-center">Name</th>
                   <th className="border border-gray-300 px-4 py-2 text-center w-28">Price</th>
                   <th className="border border-gray-300 px-4 py-2 text-center w-28">Stock</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Sold</th>
                   <th className="border border-gray-300 px-4 py-2 text-center w-60"></th>
                 </tr>
               </thead>
@@ -165,6 +166,9 @@ export default function Products() {
                       ) : (
                         product.Stock
                       )}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center font-medium">
+                      {product.Sold}
                     </td>
                     <td className="border border-gray-300 px-4 py-2 text-center space-x-2">
                       {editingProduct === product.ProductID ? (

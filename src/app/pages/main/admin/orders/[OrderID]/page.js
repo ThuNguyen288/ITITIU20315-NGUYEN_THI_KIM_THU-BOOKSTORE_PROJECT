@@ -1,74 +1,92 @@
-// Checkout Page
 'use client';
-import { useState, useEffect } from 'react';
 
-export default function Checkout() {
-  const [selectedItems, setSelectedItems] = useState([]);
+import { use, useState, useEffect } from 'react';
+
+export default function OrderDetails({ params }) {
+  const { OrderID } = use(params); // Dùng `use` để unwrap `params`
+  const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem('selectedItems')) || [];
-    setSelectedItems(items);
-    const totalCost = items.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
-    setTotal(totalCost);
-  }, []);
-  const handlePlaceOrder = async () => {
-    try {
-      const CustomerID = localStorage.getItem('customerId');
-      const response = await fetch('/api/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          CustomerID,
-          items: selectedItems,
-          total,
-        }),
-      });
+    if (!OrderID) return;
 
-      if (!response.ok) {
-        throw new Error('Failed to place order');
+    const fetchOrderDetails = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Fetch order details
+        const data = await fetch(`/api/admin/orders/${OrderID}`);
+        if (!data.ok) {
+          throw new Error(`Error fetching order details: ${data.status} ${data.statusText}`);
+        }
+        const dataDetails = await data.json();
+        
+        // Fetch details of each product
+        const productDetailsPromises = dataDetails.orderDetails.map(async (orderItem) => {
+          const productData = await fetch(`/api/${orderItem.ProductID}`);
+          if (!productData.ok) {
+            throw new Error(`Error fetching product details for ProductID: ${orderItem.ProductID}`);
+          }
+          const product = await productData.json();
+          return {
+            ...orderItem,
+            Name: product.product.Name,
+            ImageURL: product.product.image || 'https://via.placeholder.com/80',
+            Price: product.product.Price,
+          };
+        });
+
+        const detailedItems = await Promise.all(productDetailsPromises);
+        setItems(detailedItems);
+
+        // Tính toán tổng giá trị đơn hàng
+        const orderTotal = detailedItems.reduce((sum, item) => {
+          return sum + (item.Price * item.Quantity);
+        }, 0);
+        setTotal(orderTotal);
+        
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(`Failed to load data: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      alert('Order placed successfully!');
-      localStorage.removeItem('selectedItems');
-      window.location.href = '/';
-    } catch (err) {
-      console.error(err.message);
-      alert('Failed to place order. Please try again.');
-    }
-  };
+    fetchOrderDetails();
+  }, [OrderID]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
+  if (items.length === 0) return <div>Order not found</div>;
 
   return (
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-center mb-6">Checkout</h1>
-          <div className="grid grid-cols-1 gap-6">
-            {selectedItems.map((item) => (
-              <div key={item.ProductID} className="flex items-center justify-between border border-gray-300 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <img
-                    src={item.Image || 'https://via.placeholder.com/80'}
-                    alt={item.Name}
-                    className="h-20 object-cover rounded-lg"
-                  />
-                  <div className="ml-4">
-                    <h2 className="text-lg font-semibold">{item.Name}</h2>
-                    <p className="text-gray-600">{item.Price.toFixed(2)} VND</p>
-                    <p className="text-gray-600">Quantity: {item.Quantity}</p>
-                  </div>
-                  </div>
-                </div>
-            ))}
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-2xl font-bold text-center mb-6">Order ID: {OrderID}, Total: {total.toFixed(2)} VND</h1>
+      <div className="grid grid-cols-1 gap-6">
+        {items.map((item) => (
+          <div
+            key={item.ProductID}
+            className="flex items-center justify-between border border-gray-300 p-4 rounded-lg"
+          >
+            <div className="flex items-center">
+              <img
+                src={item.ImageURL}
+                alt={item.Name}
+                className="h-20 object-cover rounded-lg"
+              />
+              <div className="ml-4">
+                <h2 className="text-lg font-semibold">{item.Name}</h2>
+                <p className="text-gray-600">{item.Price} VND</p>
+                <p className="text-gray-600">Quantity: {item.Quantity}</p>
+              </div>
+            </div>
           </div>
-          <div className="mt-6 text-right">
-            <h2 className="text-xl font-bold">Total: ${total.toFixed(2)}</h2>
-            <button
-              onClick={handlePlaceOrder}
-              className="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-            >
-              Place Order
-            </button>
-          </div>
+        ))}
       </div>
+    </div>
   );
 }
