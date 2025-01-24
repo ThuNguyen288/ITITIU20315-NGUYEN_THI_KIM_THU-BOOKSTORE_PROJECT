@@ -4,7 +4,7 @@ import db from "../../../dbConect";
 // DELETE method to remove a product
 export async function DELETE(req, { params }) {
   try {
-    const { ProductID } = params; // Directly access params
+    const { ProductID } = await params; // Directly access params
 
     if (!ProductID) {
       return new Response(
@@ -47,7 +47,7 @@ export async function DELETE(req, { params }) {
 // PUT method to update product details
 export async function PUT(req, { params }) {
   try {
-    const { ProductID } = params; // Directly access params
+    const { ProductID } = await params; // Directly access params
     const { Name, Price, Stock } = await req.json();
 
     if (!ProductID || !Name || !Price || !Stock) {

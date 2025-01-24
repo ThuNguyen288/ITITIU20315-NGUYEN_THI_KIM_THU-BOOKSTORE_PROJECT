@@ -1,5 +1,6 @@
 'use client';
 import HotProducts from '@/app/components/HotProducts';
+import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
 const ProductDetail = ({ params }) => {
@@ -44,6 +45,7 @@ const ProductDetail = ({ params }) => {
     };
     fetchProduct();
   }, [ProductID]);
+
   const incrementClickCount = async (ProductID) => {
     try {
       await fetch(`/api/${ProductID}`, {
@@ -106,17 +108,33 @@ const ProductDetail = ({ params }) => {
       <div className="grid grid-cols-2 gap-8">
         <h1 className="text-4xl font-bold">{product.Name}</h1>
         <div></div>
-        <div className="border border-gray-500">
+        <div className="border border-gray-500 w-full h-full flex items-center justify-center">
           <img
             src={product.image || 'https://via.placeholder.com/500'}
             alt={product.Name}
-            className="h-80 object-cover my-4 align-middle mx-auto"
+            className="h-80 object-contain mx-auto"
           />
         </div>
-        <div>
-          <p className="mt-4 h-36">{product.Description}</p>
+
+        <div className="">
+          <p className="mt-4 h-36 h-fit">{product.Description}</p>
           <p className="mt-12 text-xl font-semibold text-right">{product.Price} VND</p>
           <p className="mt-4 text-right">Stock: {product.Stock}</p>
+
+          {/* Display tags */}
+          {product.Tags && product.Tags.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-base font-medium">Tags:</h4>
+              <div className="flex flex-wrap gap-2">
+                {product.Tags.map((tag, index) => (
+                  <Link href={`/pages/main/customer/search?attribute=${tag}`} key={index} className="px-3 py-1 no-underline text-black bg-gray-200 rounded-full text-sm">
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center">
               <label htmlFor="quantity" className="mr-2">Quantity:</label>
@@ -147,7 +165,7 @@ const ProductDetail = ({ params }) => {
         </div>
       )}
       <hr className='my-10'></hr>
-      <HotProducts/>
+      <HotProducts />
     </div>
   );
 };

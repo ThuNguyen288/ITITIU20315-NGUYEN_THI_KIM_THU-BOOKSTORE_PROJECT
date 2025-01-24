@@ -3,13 +3,11 @@ import db from "../dbConect";
 // PUT method to update product details or increment click count
 export async function PUT(req, { params }) {
   try {
-    // Await params to get the ProductID properly
-    const { ProductID } = await params;  
+    const { ProductID } = await params;
     const { Name, Price, Stock, increment } = await req.json();
 
     // If 'increment' is present, update click count
     if (increment !== undefined) {
-      // Ensure proper execution with await
       const [result] = await db.execute(
         "UPDATE products SET Clicked = Clicked + ? WHERE ProductID = ?",
         [increment, ProductID]
@@ -64,13 +62,12 @@ export async function PUT(req, { params }) {
   }
 }
 
-// GET method to fetch product details
+// GET method to fetch product details along with tags
 export async function GET(req, { params }) {
-  // Await params to ensure ProductID is retrieved properly
-  const { ProductID } = await params;  
+  const { ProductID } = await params;
 
   try {
-    // Ensure the correct SQL query, parameterized with ProductID
+    // Query to get product details and associated image
     const [rows] = await db.execute(`
       SELECT p.*, pi.ImageURL AS image
       FROM products p
@@ -82,9 +79,22 @@ export async function GET(req, { params }) {
       return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
     }
 
-    return new Response(JSON.stringify({ product: rows[0] }), { status: 200 });
+    const product = rows[0];
+
+    // Query to get tags associated with the product
+    const [tags] = await db.execute(`
+      SELECT t.Name
+      FROM tags t
+      JOIN product_tag pt ON t.TagID = pt.TagID
+      WHERE pt.ProductID = ?`, [ProductID]);
+
+    // Combine product details with tags
+    product.Tags = tags.map(tag => tag.Name);
+
+    return new Response(JSON.stringify({ product }), { status: 200 });
   } catch (err) {
     console.error("Error fetching product:", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
+  db.release();
 }

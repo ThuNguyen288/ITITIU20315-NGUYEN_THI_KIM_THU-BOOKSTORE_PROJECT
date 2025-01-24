@@ -181,20 +181,26 @@ export default function Products() {
                       <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
                     )}
                   </th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-60"></th>
+                  <th className="border border-gray-300 px-4 py-2 text-center w-60">
+                    <Link href="./AddProduct">
+                      <button className="bg-green-500 text-white px-2 py-1 mb-4 rounded mt-4 hover:bg-green-600">
+                        Add Product
+                      </button>
+                    </Link>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((product, index) => (
                   <tr key={product.ProductID} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-2 text-center">
+                    <td className="border border-gray-300 px-4 py-2 text-center w-20">
                       {index + 1}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2 text-center flex justify-center items-center">
+                    <td className="border border-gray-300 px-4 py-2 text-center flex justify-center items-center w-28">
                       <img
                         src={product.image || "https://via.placeholder.com/80"}
                         alt={product.Name}
-                        className="h-16 rounded"
+                        className="h-16 border-0 rounded"
                       />
                     </td>
 
@@ -205,27 +211,27 @@ export default function Products() {
                           name="Name"
                           value={updatedProduct.Name}
                           onChange={handleInputChange}
-                          className="px-2 py-1 w-40 outline-none"
+                          className="px-2 py-1 w-auto outline-none"
                         />
                       ) : (
                         product.Name
                       )}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2 text-center">
+                    <td className="border border-gray-300 px-4 py-2 text-center w-28">
                       {editingProduct === product.ProductID ? (
                         <input
                           type="number"
                           name="Price"
                           value={updatedProduct.Price}
                           onChange={handleInputChange}
-                          className="px-2 py-1 w-40 outline-none"
+                          className="px-1 py-1 w-24 outline-none"
                         />
                       ) : (
                         product.Price
                       )}
                     </td>
                     <td
-                      className={`border border-gray-300 px-4 py-2 text-center font-medium ${
+                      className={`border border-gray-300 px-4 py-2 text-center w-28 font-medium ${
                         product.Stock > 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >

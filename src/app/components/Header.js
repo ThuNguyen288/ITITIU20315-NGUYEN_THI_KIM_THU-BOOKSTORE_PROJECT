@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../context/AuthContext'; // Import the context
+import SearchBar from './SearchBar';
 
 const accountGroup = [
   { name: 'Account', href: '#' },
@@ -77,6 +78,7 @@ export default function Header() {
             </Link>
           ) : (
             <div className='flex'>
+              <SearchBar/>
               <Link href="/pages/main/customer/cart" className="flex items-center text-sm font-semibold text-gray-900">
                 <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
               </Link>
