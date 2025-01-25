@@ -111,6 +111,44 @@ export async function GET(req) {
   }
 }
 
+// PUT method to update quantity in the cart
+// PUT method to update quantity in the cart
+export async function PUT(req) {
+  try {
+    const { CustomerID, ProductID, Quantity } = await req.json();
+
+    // Validate required fields
+    if (!CustomerID || !ProductID || !Number.isInteger(Quantity)) {
+      return new Response(
+        JSON.stringify({ message: 'Invalid or missing required fields.' }),
+        { status: 400 }
+      );
+    }
+
+    // Update quantity for the given product in the cart
+    await db.execute(
+      `
+      UPDATE cart
+      SET Quantity = GREATEST(0, Quantity + ?)
+      WHERE CustomerID = ? AND ProductID = ?
+      `,
+      [Quantity, CustomerID, ProductID]
+    );
+
+    return new Response(
+      JSON.stringify({ message: 'Quantity updated successfully.' }),
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error updating quantity:', error);
+    return new Response(
+      JSON.stringify({ message: 'Internal server error.' }),
+      { status: 500 }
+    );
+  }
+}
+
+
 // DELETE method to remove a product from the cart
 export async function DELETE(req) {
   const { CustomerID, ProductID } = await req.json();

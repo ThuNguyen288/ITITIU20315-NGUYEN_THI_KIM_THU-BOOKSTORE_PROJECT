@@ -67,31 +67,39 @@ export default function Products() {
                 </tr>
               </thead>
               <tbody>
-              {orders.map((order, index) => (
-                <tr 
-                  key={order.OrderID} 
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => window.location.href = `/pages/main/admin/orders/${order.OrderID}`}
-                >
-                  <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">{order.CustomerID}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">{order.OrderDate}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">{order.Total} VND</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <select
-                      value={order.Status}
-                      onChange={(e) => handleStatusChange(order.OrderID, e.target.value)}
-                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                      required
+                {orders.map((order, index) => {
+                  const formattedDate = new Date(order.OrderDate).toLocaleDateString('en-GB'); // Format date to dd/mm/yyyy
+                  return (
+                    <tr
+                      key={order.OrderID}
+                      className="hover:bg-gray-50 cursor-pointer"
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Completed">Completed</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-
+                      <td
+                        className="border border-gray-300 px-4 py-2 text-center"
+                        onClick={() => window.location.href = `/pages/main/admin/orders/${order.OrderID}`}
+                      >
+                        {index + 1}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">{order.CustomerID}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">{formattedDate}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">{order.Total} VND</td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">
+                        <select
+                          value={order.Status}
+                          onChange={(e) => handleStatusChange(order.OrderID, e.target.value)}
+                          className={`mt-1 block w-full p-2 border border-gray-300 rounded-md ${
+                            order.Status === "Pending" ? "bg-red-300" : "bg-green-300"
+                          }`}
+                          required
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

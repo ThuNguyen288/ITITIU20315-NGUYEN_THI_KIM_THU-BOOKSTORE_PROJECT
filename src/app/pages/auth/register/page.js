@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import './Register.css';
+import { useRouter } from 'next/navigation';
+
 
 // Dynamically load Bootstrap JS to avoid SSR issues
 const Bootstrap = dynamic(() => import('bootstrap/dist/js/bootstrap.bundle.min.js'), { ssr: false });
@@ -13,7 +15,8 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [login, setLogin] = useState('');
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -36,6 +39,7 @@ export default function SignUp() {
       const result = await response.json();
       if (response.ok) {
         alert(result.message); // Success message
+        router.push('./login');
       } else {
         alert(result.error); // Error message
       }
@@ -84,12 +88,6 @@ export default function SignUp() {
           />
         </div>
         <div className="col-10 py-4">
-          <div className="form-check">
-            <input className="form-check-input scale-150" type="checkbox" id="gridCheck" />
-            <label className="form-check-label" htmlFor="gridCheck">
-              Let me Log in
-            </label>
-          </div>
         </div>
         <div className="col-10">
           <button type="submit" className="btn btn-primary">Sign Up</button>

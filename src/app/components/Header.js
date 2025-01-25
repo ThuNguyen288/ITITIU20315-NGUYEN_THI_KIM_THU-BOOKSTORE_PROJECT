@@ -16,6 +16,7 @@ import SearchBar from './SearchBar';
 const accountGroup = [
   { name: 'Account', href: '#' },
   { name: 'Settings', href: '#' },
+  { name: 'Orders', href: '/pages/main/customer/orders' },
   { name: 'Logout', href: '#' },
 ];
 

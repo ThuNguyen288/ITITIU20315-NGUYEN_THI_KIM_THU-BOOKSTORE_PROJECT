@@ -1,21 +1,12 @@
-import db from "../../dbConect";
+import db from "../dbConect";
 
-export async function GET() {
+export async function GET(req) {
   try {
     // Fetch all orders from the database
-    const [orders] = await db.execute(`
-      SELECT * 
-      FROM orders
-      ORDER BY 
-        CASE Status
-          WHEN 'Pending' THEN 1
-          WHEN 'Shipped' THEN 2
-          WHEN 'Completed' THEN 3
-          ELSE 4
-        END ASC,
-        OrderDate ASC;
-        `
-      );
+    const url = new URL(req.url);
+    const CustomerID = url.searchParams.get('CustomerID');
+
+    const [orders] = await db.execute("SELECT * FROM orders WHERE CustomerID = ? ORDER BY OrderDate DESC", [CustomerID]);
 
     return new Response(JSON.stringify({ orders }), {
       status: 200,
