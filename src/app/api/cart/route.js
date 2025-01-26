@@ -12,6 +12,14 @@ export async function POST(req) {
   }
 
   try {
+    //Check if quantity > stock
+    const stock = await db.execute(`SELECT Stock FROM Products WHERE ProductID = ${ProductID}`);
+    
+    if (stock[0].Stock < Quantity) {
+      return new Response(
+        JSON.stringify({ message: 'Insufficient stock.' }),
+        { status: 400 }
+        );};
     // Check if the product already exists in the cart for the given customer
     const [existingItem] = await db.execute(
       'SELECT * FROM cart WHERE CustomerID = ? AND ProductID = ?',
