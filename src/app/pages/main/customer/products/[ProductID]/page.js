@@ -10,41 +10,29 @@ const ProductDetail = ({ params }) => {
   const [quantity, setQuantity] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
   const [notification, setNotification] = useState('');
-  const [ProductID, setProductID] = useState(null);
 
   useEffect(() => {
-    const fetchProductDetails = async () => {
-      const { ProductID } = await params;
-      setProductID(ProductID);
-    };
-
-    fetchProductDetails();
-  }, [params]);
-
-  useEffect(() => {
-    if (!ProductID) return;
-
     const fetchProduct = async () => {
-      setLoading(true);
       try {
+        const { ProductID } = await params;
         const res = await fetch(`/api/${ProductID}`);
-        const data = await res.json();
+        if (!res.ok) throw new Error('Failed to fetch product details');
 
-        if (data.product) {
-          setProduct(data.product);
-          await incrementClickCount(ProductID);
-        } else {
-          setError('Product not found');
-        }
+        const data = await res.json();
+        if (!data.product) throw new Error('Product not found');
+
+        setProduct(data.product);
+        await incrementClickCount(ProductID);
       } catch (err) {
         console.error('Error fetching product details:', err);
-        setError('Error fetching product details');
+        setError(err.message || 'An unknown error occurred');
       } finally {
         setLoading(false);
       }
     };
+
     fetchProduct();
-  }, [ProductID]);
+  }, [params]);
 
   const incrementClickCount = async (ProductID) => {
     try {
@@ -61,16 +49,11 @@ const ProductDetail = ({ params }) => {
   const handleAddToCart = async () => {
     try {
       const CustomerID = localStorage.getItem('customerId');
-      if (!CustomerID) {
-        console.error('Customer ID is missing. Please login again.');
-        return;
-      }
+      if (!CustomerID) throw new Error('Customer ID is missing. Please login again.');
 
       const response = await fetch('/api/cart', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           CustomerID,
           ProductID: product.ProductID,
@@ -78,29 +61,26 @@ const ProductDetail = ({ params }) => {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add product to cart');
-      }
+      if (!response.ok) throw new Error('Failed to add product to cart');
 
-      const result = await response.json();
       setNotification('Product added to cart successfully!');
+    } catch (err) {
+      setNotification(`Error: ${err.message}`);
+    } finally {
       setShowNotification(true);
-
-      setTimeout(() => setShowNotification(false), 3000);
-    } catch (error) {
-      setNotification(`Error: ${error.message}`);
-      setShowNotification(true);
-
       setTimeout(() => setShowNotification(false), 3000);
     }
   };
 
   const handleQuantityChange = (e) => {
-    setQuantity(Number(e.target.value));
+    const value = Number(e.target.value);
+    if (value >= 1 && value <= product.Stock) {
+      setQuantity(value);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
   if (!product) return <div>Product not found</div>;
 
   return (
@@ -116,47 +96,54 @@ const ProductDetail = ({ params }) => {
           />
         </div>
 
-        <div className="">
-          <p className="mt-4 h-36 h-fit">{product.Description}</p>
+        <div>
+          <p className="mt-4">{product.Description}</p>
           <p className="mt-12 text-xl font-semibold text-right">{product.Price} VND</p>
-          <p className="mt-4 text-right">Stock: {product.Stock}</p>
-
-          {/* Display tags */}
-          {product.Tags && product.Tags.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-base font-medium">Tags:</h4>
-              <div className="flex flex-wrap gap-2">
-                {product.Tags.map((tag, index) => (
-                  <Link href={`/pages/main/customer/search?attribute=${tag}`} key={index} className="px-3 py-1 no-underline text-black bg-gray-200 rounded-full text-sm">
-                    {tag}
-                  </Link>
-                ))}
+          {product.Stock > 0 ? (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <label htmlFor="quantity" className="mr-2">
+                  Quantity:
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  value={quantity}
+                  min="1"
+                  max={product.Stock}
+                  onChange={handleQuantityChange}
+                  className="border p-2 rounded"
+                />
               </div>
+
+              <button
+                onClick={handleAddToCart}
+                className="bg-blue-500 text-white p-2 rounded"
+              >
+                Add to Cart
+              </button>
             </div>
+          ) : (
+            <p className="text-red-500">Out of stock</p>
           )}
-
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <label htmlFor="quantity" className="mr-2">Quantity:</label>
-              <input
-                type="number"
-                id="quantity"
-                value={quantity}
-                min="1"
-                max={product.Stock}
-                onChange={handleQuantityChange}
-                className="border p-2 rounded"
-              />
-            </div>
-
-            <button
-              onClick={handleAddToCart}
-              className="bg-blue-500 text-white p-2 rounded"
-            >
-              Add to Cart
-            </button>
-          </div>
         </div>
+
+        {product.Tags && product.Tags.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-base font-medium">Tags:</h4>
+            <div className="flex flex-wrap gap-2">
+              {product.Tags.map((tag, index) => (
+                <Link
+                  href={`/pages/main/customer/search?attribute=${tag}`}
+                  key={index}
+                  className="px-3 py-1 no-underline text-black bg-gray-200 rounded-full text-sm"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {showNotification && (
@@ -164,7 +151,8 @@ const ProductDetail = ({ params }) => {
           {notification}
         </div>
       )}
-      <hr className='my-10'></hr>
+
+      <hr className="my-10" />
       <HotProducts />
     </div>
   );
