@@ -1,9 +1,9 @@
 import db from "../dbConect";
 
-// GET method: Lấy 10 sản phẩm có Clicked lớn nhất
+// GET method: Lấy 8 sản phẩm có Clicked lớn nhất
 export async function GET(req) {
   try {
-    // Truy vấn MySQL để lấy 10 sản phẩm có số lần Clicked lớn nhất
+    // Truy vấn MySQL để lấy 8 sản phẩm có số lần Clicked lớn nhất
     const [products] = await db.execute(`
       SELECT 
         p.*, 
@@ -11,7 +11,7 @@ export async function GET(req) {
       FROM products p
       LEFT JOIN productimages pi ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1
       ORDER BY p.Sold DESC
-      LIMIT 4
+      LIMIT 8
     `);
 
     return new Response(

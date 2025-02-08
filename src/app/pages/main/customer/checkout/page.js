@@ -61,6 +61,12 @@ export default function Checkout() {
                 </div>
             ))}
           </div>
+          <div>
+            <h2 className="text-lg font-semibold">Shipping information</h2>
+            <form>
+              <input type = "text"></input>
+            </form>
+          </div>
           <div className="mt-6 text-right">
             <h2 className="text-xl font-bold">Total: {total} VND</h2>
             <button
