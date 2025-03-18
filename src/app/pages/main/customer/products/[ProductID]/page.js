@@ -1,5 +1,6 @@
 'use client';
 import HotProducts from '@/app/components/HotProducts';
+import RelatedItems from '@/app/components/RelatedItems';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
@@ -22,6 +23,7 @@ const ProductDetail = ({ params }) => {
         if (!data.product) throw new Error('Product not found');
 
         setProduct(data.product);
+        console.log(product)
         await incrementClickCount(ProductID);
       } catch (err) {
         console.error('Error fetching product details:', err);
@@ -95,8 +97,22 @@ const ProductDetail = ({ params }) => {
             className="h-80 object-contain mx-auto"
           />
         </div>
-
         <div>
+        <div className="mt-4">
+          {product.CategoryID == 1 ? (
+            <div>
+              <p><strong>Author:</strong> {product.Author}</p>
+              <p><strong>PublishYear:</strong> {product.PublishYear}</p>
+            </div>
+          ) : product.CategoryID == 2 ? (
+            <div>
+              <p><strong>Pentype:</strong> {product.PenType}</p>
+              <p><strong>InkColor:</strong> {product.InkColor}</p>
+            </div>
+          ) : (
+            <p><strong>Other Information:</strong>None</p>
+          )}
+        </div>
           <p className="mt-4">{product.Description}</p>
           <p className="mt-12 text-xl font-semibold text-right">{product.Price} VND</p>
           {product.Stock > 0 ? (
@@ -152,6 +168,8 @@ const ProductDetail = ({ params }) => {
         </div>
       )}
 
+      <hr className="my-10" />
+      {product && <RelatedItems currentProduct={product} />}
       <hr className="my-10" />
       <HotProducts />
     </div>

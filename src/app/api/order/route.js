@@ -2,7 +2,7 @@ import db from '../dbConect'; // Ensure the correct path to the DB connection
 
 // POST method to place an order
 export async function POST(req) {
-  const { CustomerID, items, total } = await req.json();
+  const { CustomerID, items, total, name, address, phone, email, paymentMethod } = await req.json();
 
   if (!CustomerID || !items || items.length === 0 || !total) {
     return new Response(
@@ -17,9 +17,9 @@ export async function POST(req) {
 
     // Create a new order
     const [orderResult] = await db.query(`
-      INSERT INTO orders (CustomerID, Total, OrderDate)
-      VALUES (?, ?, NOW())
-    `, [CustomerID, total]);
+      INSERT INTO orders (CustomerID, Total, OrderDate, Address, Phone, Name, PaymentMethod)
+      VALUES (?, ?, NOW(), ?, ?, ?, ?)
+    `, [CustomerID, total, address, phone, name, paymentMethod]);
 
     const orderId = orderResult.insertId;
 

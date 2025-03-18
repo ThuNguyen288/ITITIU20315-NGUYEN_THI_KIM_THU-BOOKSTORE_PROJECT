@@ -67,7 +67,7 @@ export async function GET(req, { params }) {
   const { ProductID } = await params;
 
   try {
-    // Query to get product details and associated image
+    // Lấy thông tin sản phẩm chính
     const [rows] = await db.execute(`
       SELECT p.*, pi.ImageURL AS image
       FROM products p
@@ -80,15 +80,32 @@ export async function GET(req, { params }) {
     }
 
     const product = rows[0];
-
-    // Query to get tags associated with the product
+    console.log(product.CategoryID)
+    // Kiểm tra Category để lấy thêm thông tin từ bảng books hoặc pens
+    if (product.CategoryID === 1) {
+      const [bookData] = await db.execute(`
+        SELECT Author, PublishYear FROM books WHERE ProductID = ?`, [ProductID]);
+      if (bookData.length > 0) {
+        product.Author = bookData[0].Author;
+        product.PublishYear = bookData[0].PublishYear;
+      }
+    } else if (product.CategoryID === 2) {
+      const [penData] = await db.execute(`
+        SELECT PenType, InkColor FROM pens WHERE ProductID = ?`, [ProductID]);
+      if (penData.length > 0) {
+        product.PenType = penData[0].PenType;
+        product.InkColor = penData[0].InkColor;
+      }
+    }
+    console.log(product)
+    // Lấy danh sách tags liên quan đến sản phẩm
     const [tags] = await db.execute(`
       SELECT t.Name
       FROM tags t
       JOIN product_tag pt ON t.TagID = pt.TagID
       WHERE pt.ProductID = ?`, [ProductID]);
 
-    // Combine product details with tags
+    // Gán danh sách tags vào product
     product.Tags = tags.map(tag => tag.Name);
 
     return new Response(JSON.stringify({ product }), { status: 200 });
@@ -96,5 +113,4 @@ export async function GET(req, { params }) {
     console.error("Error fetching product:", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
-  db.release();
 }
