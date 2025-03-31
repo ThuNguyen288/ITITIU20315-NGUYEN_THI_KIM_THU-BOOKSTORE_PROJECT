@@ -120,7 +120,7 @@ export default function Checkout() {
 
   return (
     <Box sx={{ width: "100%", mx: "auto", py: 3, px: 4, maxWidth: "1200px" }}>
-      <Typography variant="h5" align="center" gutterBottom>CHECKOUT</Typography>
+      <Typography variant="h2" align="center" gutterBottom>CHECKOUT</Typography>
       {error && <Typography color="error" align="center">{error}</Typography>}
 
       {selectedItems.length === 0 ? (
@@ -148,7 +148,7 @@ export default function Checkout() {
           <Grid item xs={12} md={4}>
             <Paper square={false} elevation={2} sx={{ p: 2, backgroundColor: red[50] }}>
               {/* Shipping Information */}
-              <Typography variant="subtitle1">Shipping</Typography>
+              <Typography variant="h4">Shipping information</Typography>
               <TextField label="Name" fullWidth size="small" value={name} onChange={(e) => setName(e.target.value)} sx={{ mt: 1 }} />
               <TextField label="Address" fullWidth size="small" value={address} onChange={(e) => setAddress(e.target.value)} sx={{ mt: 1 }} />
               <TextField label="Phone" fullWidth size="small" value={phone} onChange={(e) => setPhone(e.target.value)} sx={{ mt: 1 }} />

@@ -82,7 +82,7 @@ export async function GET(req) {
 
     // Retrieve product details for the products in the cart
     const [products] = await db.execute(
-      'SELECT p.ProductID, p.Name, p.Price, pi.ImageURL FROM products p ' +
+      'SELECT p.ProductID, p.Name, p.Price, p.Cost, pi.ImageURL FROM products p ' +
       'JOIN productimages pi ON p.ProductID = pi.ProductID ' +
       'WHERE p.ProductID IN (SELECT ProductID FROM cart WHERE CustomerID = ?)',
       [CustomerID]
@@ -102,6 +102,7 @@ export async function GET(req) {
         ...item,
         Name: product?.Name || 'Unknown',
         Price: product?.Price || 0,
+        Cost: product?.Cost || 0,
         Image: product?.ImageURL || 'https://via.placeholder.com/80',
       };
     });

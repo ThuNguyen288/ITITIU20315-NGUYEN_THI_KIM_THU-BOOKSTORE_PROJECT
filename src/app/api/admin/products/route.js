@@ -33,6 +33,7 @@ export async function POST(req) {
     const {
       name,
       description,
+      cost,
       price,
       stock,
       categoryId,
@@ -57,7 +58,7 @@ export async function POST(req) {
       images,
     });
     
-    if (!name || !description || !price || !stock || !categoryId) {
+    if (!name || !description || !cost || !price || !stock || !categoryId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400 }
@@ -66,8 +67,8 @@ export async function POST(req) {
 
     // Thêm sản phẩm vào bảng `products`
     const [product] = await db.execute(
-      "INSERT INTO products (Name, Description, Price, Stock, CategoryID) VALUES (?, ?, ?, ?, ?)",
-      [name, description, price, stock, categoryId]
+      "INSERT INTO products (Name, Description, Cost, Price, Stock, CategoryID) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, description, cost,price, stock, categoryId]
     );
 
     const productId = product.insertId;

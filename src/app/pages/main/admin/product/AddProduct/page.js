@@ -8,6 +8,7 @@ export default function AdminProductInsert() {
   const { isAuthenticated } = useAuth();
   const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
+  const [cost, setCost] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -88,6 +89,7 @@ const handleImageChange = async (e) => {
     const productData = {
       name: productName,
       description,
+      cost: parseFloat(cost),
       price: parseFloat(price),
       stock: parseInt(stock),
       categoryId: parseInt(categoryId),
@@ -146,6 +148,19 @@ const handleImageChange = async (e) => {
             required
           />
         </div>
+
+        {/* Cost */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Cost</label>
+          <input
+            type="number"
+            value={cost}
+            onChange={(e) => setCost(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+
 
         {/* Price */}
         <div>

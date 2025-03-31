@@ -12,10 +12,9 @@ export async function POST(req) {
   }
 
   try {
-    // Start transaction
     await db.query('START TRANSACTION');
 
-    // Create a new order
+    // 1️⃣ Tạo đơn hàng
     const [orderResult] = await db.query(`
       INSERT INTO orders (CustomerID, Total, OrderDate, Address, Phone, Name, PaymentMethod)
       VALUES (?, ?, NOW(), ?, ?, ?, ?)
@@ -23,73 +22,67 @@ export async function POST(req) {
 
     const orderId = orderResult.insertId;
 
-    // Insert order details and reduce stock
+    // 2️⃣ Kiểm tra và cập nhật kho hàng
     for (const item of items) {
-      // Insert order details
-      await db.query(`
-        INSERT INTO orderdetails (OrderID, ProductID, Quantity, Price)
-        VALUES (?, ?, ?, ?)
-      `, [orderId, item.ProductID, item.Quantity, item.Price]);
+      const [stockCheck] = await db.execute(
+        "SELECT Stock FROM products WHERE ProductID = ?",
+        [item.ProductID]
+      );
 
-      // Reduce product stock in the products table
+      if (stockCheck.length === 0 || stockCheck[0].Stock < item.Quantity) {
+        throw new Error(`Sản phẩm ID ${item.ProductID} không đủ hàng`);
+      }
+    }
+
+    // 3️⃣ Chèn chi tiết đơn hàng và cập nhật doanh thu
+    const orderDetailsValues = items.map(item => `(${orderId}, ${item.ProductID}, ${item.Quantity}, ${item.Price})`).join(',');
+    await db.query(`INSERT INTO orderdetails (OrderID, ProductID, Quantity, Price) VALUES ${orderDetailsValues}`);
+
+    const revenueValues = items.map(item => `(${item.ProductID}, ${item.Quantity}, ${item.Price}, ${item.Cost * item.Quantity || 0}, CURDATE())`).join(',');
+    await db.query(`INSERT INTO revenue (ProductID, Quantity, Price, Cost, Sale_date) VALUES ${revenueValues}`);
+console.log(revenueValues)
+    // 4️⃣ Cập nhật kho hàng
+    for (const item of items) {
       await db.query(`
         UPDATE products
         SET Stock = Stock - ?, Sold = Sold + ?
         WHERE ProductID = ?
       `, [item.Quantity, item.Quantity, item.ProductID]);
-      
+    }
+
+    // 5️⃣ Gửi thông báo hết hàng
+    for (const item of items) {
       const [product] = await db.execute(
         "SELECT Name, Stock FROM products WHERE ProductID = ?",
         [item.ProductID]
       );
-  
-      if (product.length === 0) {
-        return new Response(
-          JSON.stringify({ error: `Product with ID ${item.ProductID} not found after update` }),
-          { status: 404 }
-        );
-      }
-  
-      const { Name: productName, Stock: productStock } = product[0];
-  
-      // Nếu hết hàng, tạo thông báo
-      if (productStock === 0) {
-        await db.execute(
-          `
+
+      if (product.length > 0 && product[0].Stock === 0) {
+        await db.execute(`
           INSERT INTO notifications (ProductID, Message, CreatedAt, Status)
           VALUES (?, ?, NOW(), 'Unread')
-          `,
-          [item.ProductID, `Sản phẩm ${productName}, ID: ${item.ProductID} hết hàng`]
-        );
+        `, [item.ProductID, `Sản phẩm ${product[0].Name}, ID: ${item.ProductID} hết hàng`]);
       }
-
-      // Optionally, remove the item from the cart (if there’s a cart system)
-      await db.query(`
-        DELETE FROM cart WHERE CustomerID = ? AND ProductID = ?
-      `, [CustomerID, item.ProductID]);
     }
 
-    // Create a notification for the admin about the new order
+    // 6️⃣ Xóa giỏ hàng của khách hàng
+    await db.query(`
+      DELETE FROM cart WHERE CustomerID = ?
+    `, [CustomerID]);
+
+    // 7️⃣ Gửi thông báo đơn hàng mới
     await db.query(`
       INSERT INTO notifications (CustomerID, OrderID, Message, CreatedAt, Status)
       VALUES (?, ?, ?, NOW(), 'Unread')
     `, [CustomerID, orderId, `Đơn hàng mới được tạo, ID: ${orderId}, khách hàng: ${CustomerID}, total: ${total}` ]);
 
-    // Commit transaction
     await db.query('COMMIT');
+    return new Response(JSON.stringify({ message: 'Order placed successfully', orderId }), { status: 201 });
 
-    return new Response(
-      JSON.stringify({ message: 'Order placed successfully', orderId }),
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    // Rollback transaction
+} catch (error) {
     await db.query('ROLLBACK');
     console.error('Error placing order:', error);
 
-    return new Response(
-      JSON.stringify({ error: 'Failed to place order' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+    return new Response(JSON.stringify({ error: error.message || 'Failed to place order' }), { status: 500 });
+}
 }
