@@ -2,12 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import Logo from '/public/Logo/logo.png';
-import {
-  Bars3Icon,
-  ShoppingBagIcon,
-  UserIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline';
+import { Bars3Icon, ShoppingBagIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../context/AuthContext'; // Import the context
@@ -25,6 +20,7 @@ export default function Header() {
   const [roleId, setRoleId] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Quản lý trạng thái sidebar
 
+  // Lấy roleId từ localStorage nếu đã lưu
   useEffect(() => {
     const storedRoleId = localStorage.getItem('roleId');
     if (storedRoleId) {
@@ -32,9 +28,10 @@ export default function Header() {
     }
   }, []);
 
+  // Hàm đăng xuất
   const handleLogout = () => {
     logout();
-    localStorage.clear(); // Remove all items from localStorage
+    localStorage.clear(); // Xóa tất cả thông tin trong localStorage
   };
 
   return (
@@ -48,7 +45,6 @@ export default function Header() {
             <h5 className="text-sm align-middle text-black my-auto font-semibold">Rainbow</h5>
           </a>
         </div>
-
 
         {/* Mobile Menu Button */}
         <div className="flex lg:hidden">
@@ -78,8 +74,8 @@ export default function Header() {
               Login
             </Link>
           ) : (
-            <div className='flex'>
-              <SearchBar/>
+            <div className="flex">
+              <SearchBar />
               <Link href="/pages/main/customer/cart" className="flex items-center text-sm font-semibold text-gray-900">
                 <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
               </Link>
@@ -94,9 +90,7 @@ export default function Header() {
                         {({ active }) => (
                           <Link
                             href="/pages/main/admin/dashboard"
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } block w-full text-left p-2 rounded-md no-underline text-black`}
+                            className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md no-underline text-black`}
                           >
                             Admin
                           </Link>
@@ -109,9 +103,7 @@ export default function Header() {
                           {({ active }) => (
                             <button
                               onClick={handleLogout}
-                              className={`${
-                                active ? 'bg-gray-100' : ''
-                              } block w-full text-left p-2 rounded-md`}
+                              className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md`}
                             >
                               {item.name}
                             </button>
@@ -122,9 +114,7 @@ export default function Header() {
                           {({ active }) => (
                             <Link
                               href={item.href}
-                              className={`${
-                                active ? 'bg-gray-100' : ''
-                              } block w-full text-left p-2 rounded-md no-underline text-black`}
+                              className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md no-underline text-black`}
                             >
                               {item.name}
                             </Link>
@@ -164,7 +154,7 @@ export default function Header() {
             <Link href="/pages/auth/login" className="text-sm font-semibold text-gray-900">Login</Link>
           ) : (
             <div className="flex flex-col space-y-4">
-              <hr></hr>
+              <hr />
               <Link href="/pages/main/customer/cart" className="text-sm font-semibold text-gray-900">Cart</Link>
               <button onClick={handleLogout} className="text-sm font-semibold text-gray-900 text-left">Logout</button>
             </div>

@@ -11,7 +11,7 @@ export async function GET(req) {
       FROM products p
       LEFT JOIN productimages pi ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1
       ORDER BY p.Clicked DESC
-      LIMIT 8
+      LIMIT 4
     `);
 
     return new Response(

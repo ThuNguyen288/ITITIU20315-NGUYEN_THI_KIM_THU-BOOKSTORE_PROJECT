@@ -35,7 +35,7 @@ export default function CustomerProducts() {
       await fetch(`/api/${ProductID}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ increment: 1 }),
+        body: JSON.stringify({ increment: 0.5 }),
       });
     } catch (err) {
       console.error('Error updating ClickCount:', err);

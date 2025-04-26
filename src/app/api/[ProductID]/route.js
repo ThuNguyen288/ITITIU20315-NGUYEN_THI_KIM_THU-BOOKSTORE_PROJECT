@@ -4,29 +4,40 @@ import db from "../dbConect";
 export async function PUT(req, { params }) {
   try {
     const { ProductID } = await params;
+    const { searchParams } = new URL(req.url);
+    const CustomerID = searchParams.get("CustomerID");
+
     const { Name, Price, Stock, increment } = await req.json();
 
-    // If 'increment' is present, update click count
-    if (increment !== undefined) {
+    if (typeof increment !== "undefined") {
       const [result] = await db.execute(
         "UPDATE products SET Clicked = Clicked + ? WHERE ProductID = ?",
         [increment, ProductID]
       );
 
       if (result.affectedRows === 0) {
-        return new Response(
-          JSON.stringify({ error: "Product not found" }),
-          { status: 404 }
-        );
+        return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
       }
 
-      return new Response(
-        JSON.stringify({ success: true, message: "Click count updated successfully" }),
-        { status: 200 }
-      );
+      if (CustomerID) {
+        const [product_tags] = await db.execute(`SELECT TagID FROM products WHERE ProductID = ?`, [ProductID]);
+
+        if (product_tags.length > 0 && product_tags[0].TagID) {
+          const tagIds = product_tags[0].TagID.split(',').map(id => id.trim());
+          for (const tagID of tagIds) {
+            await db.execute(`
+              INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
+              VALUES (?, ?, 1)
+              ON DUPLICATE KEY UPDATE Score = Score + 1
+            `, [CustomerID, tagID]);
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "Click count and score updated" }), { status: 200 });
     }
 
-    // Update product details if no 'increment'
+    // Update product info
     if (!ProductID || !Name || !Price || !Stock) {
       return new Response(
         JSON.stringify({ error: "ProductID, Name, Price, and Stock are required" }),
@@ -40,25 +51,13 @@ export async function PUT(req, { params }) {
     );
 
     if (result.affectedRows === 0) {
-      return new Response(
-        JSON.stringify({ error: "Product not found" }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Product updated successfully" }),
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ success: true, message: "Product updated successfully" }), { status: 200 });
   } catch (err) {
     console.error("Error updating product:", err);
-    return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message,
-      }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: err.message }), { status: 500 });
   }
 }
 
@@ -67,7 +66,6 @@ export async function GET(req, { params }) {
   const { ProductID } = await params;
 
   try {
-    // Lấy thông tin sản phẩm chính
     const [rows] = await db.execute(`
       SELECT p.*, pi.ImageURL AS image
       FROM products p
@@ -80,37 +78,38 @@ export async function GET(req, { params }) {
     }
 
     const product = rows[0];
-    console.log(product.CategoryID)
-    // Kiểm tra Category để lấy thêm thông tin từ bảng books hoặc pens
+
+    // Chi tiết thêm theo Category
     if (product.CategoryID === 1) {
-      const [bookData] = await db.execute(`
-        SELECT Author, PublishYear FROM books WHERE ProductID = ?`, [ProductID]);
+      const [bookData] = await db.execute(`SELECT Author, PublishYear FROM books WHERE ProductID = ?`, [ProductID]);
       if (bookData.length > 0) {
-        product.Author = bookData[0].Author;
-        product.PublishYear = bookData[0].PublishYear;
+        Object.assign(product, bookData[0]);
       }
     } else if (product.CategoryID === 2) {
-      const [penData] = await db.execute(`
-        SELECT PenType, InkColor FROM pens WHERE ProductID = ?`, [ProductID]);
+      const [penData] = await db.execute(`SELECT PenType, InkColor FROM pens WHERE ProductID = ?`, [ProductID]);
       if (penData.length > 0) {
-        product.PenType = penData[0].PenType;
-        product.InkColor = penData[0].InkColor;
+        Object.assign(product, penData[0]);
       }
     }
-    console.log(product)
-    // Lấy danh sách tags liên quan đến sản phẩm
-    const [tags] = await db.execute(`
-      SELECT t.Name
-      FROM tags t
-      JOIN product_tag pt ON t.TagID = pt.TagID
-      WHERE pt.ProductID = ?`, [ProductID]);
 
-    // Gán danh sách tags vào product
-    product.Tags = tags.map(tag => tag.Name);
+    // Lấy tag
+    const [productTags] = await db.execute(`SELECT TagID FROM products WHERE ProductID = ?`, [ProductID]);
+    let tagNames = [];
+
+    if (productTags.length > 0 && productTags[0].TagID) {
+      const tagIDs = productTags[0].TagID.split(',').map(id => id.trim());
+      if (tagIDs.length > 0) {
+        const placeholders = tagIDs.map(() => '?').join(',');
+        const [tagRows] = await db.execute(`SELECT Name FROM tags WHERE TagID IN (${placeholders})`, tagIDs);
+        tagNames = tagRows.map(tag => tag.Name);
+      }
+    }
+
+    product.Tags = tagNames;
 
     return new Response(JSON.stringify({ product }), { status: 200 });
   } catch (err) {
     console.error("Error fetching product:", err);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: err.message }), { status: 500 });
   }
 }

@@ -22,7 +22,7 @@ export default function RevenueChart() {
   }, []);
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
         <XAxis dataKey="Month"/>

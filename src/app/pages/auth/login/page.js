@@ -16,31 +16,32 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-
+  
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Something went wrong');
       }
-
-      // Lưu thông tin user vào localStorage
-      localStorage.setItem('customerId', data.user.id);
-      localStorage.setItem('roleId', data.user.role_id);
-      console.log(localStorage);
-
-      login(); // Set user as authenticated
+  
+      // Lưu thông tin user và token vào localStorage qua context
+      login(data.user.token, {
+        id: data.user.id,
+        name: data.user.name,
+        role_id: data.user.role_id,
+      });
+  
       router.push('/pages/main/customer/dashboard'); // Redirect tới dashboard
     } catch (err) {
       setError(err.message);
     }
   };
-
+  
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">

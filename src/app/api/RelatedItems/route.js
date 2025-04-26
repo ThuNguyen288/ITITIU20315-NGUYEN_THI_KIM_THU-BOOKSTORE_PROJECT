@@ -9,23 +9,29 @@ export async function GET(req) {
       return new Response(JSON.stringify({ error: "ProductID is required" }), { status: 400 });
     }
 
-    // Lấy danh sách TagID của sản phẩm hiện tại
-    const [tags] = await db.execute(
-      "SELECT TagID FROM product_tag WHERE ProductID = ?",
+    // Lấy TagIDs từ cột TagID trong bảng products của sản phẩm hiện tại
+    const [product] = await db.execute(
+      "SELECT TagID FROM products WHERE ProductID = ?",
       [productId]
     );
 
-    if (tags.length === 0) {
+    if (product.length === 0) {
+      return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
+    }
+
+    const tagIds = product[0].TagID.split(","); // Tách các TagID nếu là chuỗi phân cách bằng dấu phẩy
+    
+    if (tagIds.length === 0) {
       return new Response(JSON.stringify({ products: [] }), { status: 200 });
     }
 
-    const tagIds = tags.map(tag => tag.TagID);
+    // Tạo các placeholder cho truy vấn
     const placeholders = tagIds.map(() => "?").join(",");
-    
-    // Lấy danh sách ProductID có các TagID vừa lấy
+
+    // Lấy danh sách ProductID có các TagID vừa lấy, loại trừ ProductID của sản phẩm hiện tại
     const [productIds] = await db.execute(
-      `SELECT DISTINCT ProductID FROM product_tag WHERE TagID IN (${placeholders}) AND ProductID != ?`,
-      [...tagIds, productId]
+      `SELECT DISTINCT ProductID FROM products WHERE FIND_IN_SET(TagID, ?) AND ProductID != ?`,
+      [tagIds.join(","), productId]
     );
 
     if (productIds.length === 0) {
@@ -37,15 +43,12 @@ export async function GET(req) {
 
     // Lấy thông tin sản phẩm từ bảng products
     const [relatedProducts] = await db.execute(
-      `SELECT p.*, ANY_VALUE(pi.ImageURL) AS image, COUNT(pt.TagID) AS tag_match_count 
+      `SELECT p.*, pi.ImageURL AS image
        FROM products p
-       LEFT JOIN product_tag pt ON p.ProductID = pt.ProductID AND pt.TagID IN (${placeholders})
        LEFT JOIN productimages pi ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1
        WHERE p.ProductID IN (${productPlaceholders})
-       GROUP BY p.ProductID
-       ORDER BY tag_match_count DESC
-       LIMIT 8`,
-      [...tagIds, ...relatedProductIds]
+       LIMIT 4`,
+      relatedProductIds
     );
 
     return new Response(

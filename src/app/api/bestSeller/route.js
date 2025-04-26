@@ -1,9 +1,9 @@
 import db from "../dbConect";
 
-// GET method: Lấy 8 sản phẩm có Clicked lớn nhất
+// GET method: Lấy 8 sản phẩm có Bán lớn nhất
 export async function GET(req) {
   try {
-    // Truy vấn MySQL để lấy 8 sản phẩm có số lần Clicked lớn nhất
+    // Truy vấn MySQL để lấy 8 sản phẩm có số lần BÁn lớn nhất
     const [products] = await db.execute(`
       SELECT 
         p.*, 

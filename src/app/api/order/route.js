@@ -61,7 +61,14 @@ console.log(revenueValues)
         await db.execute(`
           INSERT INTO notifications (ProductID, Message, CreatedAt, Status)
           VALUES (?, ?, NOW(), 'Unread')
-        `, [item.ProductID, `Sản phẩm ${product[0].Name}, ID: ${item.ProductID} hết hàng`]);
+        `, [item.ProductID, `${product[0].Name} out of stock`]);
+      }
+
+      if (product.length > 0 && product[0].Stock <= 10) {
+        await db.execute(`
+          INSERT INTO notifications (ProductID, Message, CreatedAt, Status)
+          VALUES (?, ?, NOW(), 'Unread')
+        `, [item.ProductID, `${product[0].Name} low of stock`]);
       }
     }
 
@@ -74,7 +81,7 @@ console.log(revenueValues)
     await db.query(`
       INSERT INTO notifications (CustomerID, OrderID, Message, CreatedAt, Status)
       VALUES (?, ?, ?, NOW(), 'Unread')
-    `, [CustomerID, orderId, `Đơn hàng mới được tạo, ID: ${orderId}, khách hàng: ${CustomerID}, total: ${total}` ]);
+    `, [CustomerID, orderId, `New order from customer - ${email}, total: ${total}` ]);
 
     await db.query('COMMIT');
     return new Response(JSON.stringify({ message: 'Order placed successfully', orderId }), { status: 201 });

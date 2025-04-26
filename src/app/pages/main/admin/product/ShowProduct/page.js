@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import TextField from "@mui/material/TextField";
 import RemoveIcon from '@mui/icons-material/Remove';
 export default function Products() {
@@ -73,6 +74,11 @@ export default function Products() {
       alert(err.message);
     }
   };
+  const router = useRouter();
+
+  const handleAddClick = () => {
+    router.push('/pages/main/admin/product/AddProduct'); // Thay bằng đường dẫn em muốn chuyển đến
+  };
 
   return (
     <div className="products">
@@ -84,6 +90,7 @@ export default function Products() {
           <p className="text-center text-red-600">{error}</p>
         ) : (
           <div className="overflow-x-auto">
+            <button onClick={handleAddClick}>Add</button>
             <table className="min-w-full border border-gray-200 bg-white shadow-md text-center">
               <thead>
                 <tr className="bg-gray-100 max-w-full">

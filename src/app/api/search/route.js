@@ -25,10 +25,10 @@ export async function GET(req) {
         (
           p.Name LIKE ?
           OR p.Description LIKE ?
-          OR b.PublishYear LIKE ?
-          OR b.Author LIKE ?
-          OR pe.InkColor LIKE ?
-          OR pe.PenType LIKE ?
+          OR p.PublishYear LIKE ?
+          OR p.Author LIKE ?
+          OR p.InkColor LIKE ?
+          OR p.PenType LIKE ?
           OR t.Name LIKE ?
         )
       `;
@@ -49,14 +49,8 @@ export async function GET(req) {
       FROM products p
       LEFT JOIN productimages pi 
         ON p.ProductID = pi.ProductID AND pi.IsPrimary = 1
-      LEFT JOIN books b 
-        ON p.ProductID = b.ProductID
-      LEFT JOIN pens pe 
-        ON p.ProductID = pe.ProductID
-      LEFT JOIN product_tag pt 
-        ON p.ProductID = pt.ProductID
       LEFT JOIN tags t 
-        ON pt.TagID = t.TagID
+        ON p.TagID = t.TagID
       ${conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : ""}
       ORDER BY p.Name ASC
       LIMIT 10

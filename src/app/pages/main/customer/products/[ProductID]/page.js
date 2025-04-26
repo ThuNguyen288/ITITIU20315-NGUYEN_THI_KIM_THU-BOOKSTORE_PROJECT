@@ -11,23 +11,42 @@ const ProductDetail = ({ params }) => {
   const [quantity, setQuantity] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
   const [notification, setNotification] = useState('');
+  const [roleID, setRoleID] = useState(null); // State to store the roleID
+  const [canEdit, setCanEdit] = useState(false); // State to check if the user is allowed to edit
+  const [editingField, setEditingField] = useState(null); // Track the field being edited
+  const [updatedProduct, setUpdatedProduct] = useState({}); // To store updated product data
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const { ProductID } = await params;
+
+        // Lấy roleID và CustomerID từ localStorage
+        const roleID = localStorage.getItem("roleId");
+        const CustomerID = localStorage.getItem("customerId");
+        console.log(roleID);
+        // Fetch chi tiết sản phẩm
         const res = await fetch(`/api/${ProductID}`);
-        if (!res.ok) throw new Error('Failed to fetch product details');
+        if (!res.ok) throw new Error("Failed to fetch product details");
 
         const data = await res.json();
-        if (!data.product) throw new Error('Product not found');
+        if (!data.product) throw new Error("Product not found");
 
         setProduct(data.product);
-        console.log(product)
-        await incrementClickCount(ProductID);
+
+        // Nếu là customer (roleID = 1), thì mới gọi tăng click và điểm
+        if (roleID === '1') {
+          await fetch(`/api/${ProductID}?CustomerID=${CustomerID}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ increment: 0.5 }),
+          });
+        }
       } catch (err) {
-        console.error('Error fetching product details:', err);
-        setError(err.message || 'An unknown error occurred');
+        console.error("Error fetching product details:", err);
+        setError(err.message || "An unknown error occurred");
       } finally {
         setLoading(false);
       }
@@ -36,15 +55,42 @@ const ProductDetail = ({ params }) => {
     fetchProduct();
   }, [params]);
 
-  const incrementClickCount = async (ProductID) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedRoleID = localStorage.getItem('roleId');
+      if (storedRoleID) {
+        setRoleID(storedRoleID);
+        if (storedRoleID === '2') {
+          setCanEdit(true); // Allow edit if roleID is 2
+        }
+      }
+    }
+  }, []); // Empty dependency array to run only once
+
+  const handleDoubleClick = (field) => {
+    if (canEdit) {
+      setEditingField(field); // Track the field being edited
+      setUpdatedProduct({ ...product }); // Initialize updated product data with current values
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatedProduct((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBlur = async () => {
     try {
-      await fetch(`/api/${ProductID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ increment: 1 }),
+      const res = await fetch(`/api/${product.ProductID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedProduct),
       });
+      if (!res.ok) throw new Error("Failed to update product");
+      setProduct(updatedProduct); // Update the product state with new data
+      setEditingField(null); // Close the edit mode
     } catch (err) {
-      console.error('Error updating ClickCount:', err);
+      alert(err.message);
     }
   };
 
@@ -88,7 +134,21 @@ const ProductDetail = ({ params }) => {
   return (
     <div className="container mx-auto p-6">
       <div className="grid grid-cols-2 gap-8">
-        <h1 className="text-4xl font-bold">{product.Name}</h1>
+      <h1 className="font-semibold cursor-pointer" onDoubleClick={() => handleDoubleClick('Name')}>
+            {editingField === 'Name' ? (
+              <input
+                type="text"
+                name="Name"
+                value={updatedProduct.Name || ''}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                autoFocus
+                className="w-full border-none p-2"
+              />
+            ) : (
+              product.Name
+            )}
+          </h1>
         <div></div>
         <div className="border border-gray-500 w-full h-full flex items-center justify-center">
           <img
@@ -98,22 +158,41 @@ const ProductDetail = ({ params }) => {
           />
         </div>
         <div>
-        <div className="mt-4">
-          {product.CategoryID == 1 ? (
-            <div>
-              <p><strong>Author:</strong> {product.Author}</p>
-              <p><strong>PublishYear:</strong> {product.PublishYear}</p>
-            </div>
-          ) : product.CategoryID == 2 ? (
-            <div>
-              <p><strong>Pentype:</strong> {product.PenType}</p>
-              <p><strong>InkColor:</strong> {product.InkColor}</p>
-            </div>
-          ) : (
-            <p><strong>Other Information:</strong>None</p>
-          )}
-        </div>
-          <p className="mt-4">{product.Description}</p>
+          <div className="mt-4">
+            {product.CategoryID == 1 ? (
+              <div>
+                <p><strong>Author:</strong> {product.Author}</p>
+                <p><strong>PublishYear:</strong> {product.PublishYear}</p>
+              </div>
+            ) : product.CategoryID == 2 ? (
+              <div>
+                <p><strong>Pentype:</strong> {product.PenType}</p>
+                <p><strong>InkColor:</strong> {product.InkColor}</p>
+              </div>
+            ) : (
+              <p><strong>Other Information:</strong>None</p>
+            )}
+          </div>
+
+          {/* Editable Description and Name */}
+          <p
+            className="mt-4 cursor-pointer"
+            onDoubleClick={() => handleDoubleClick('Description')}
+          >
+            {editingField === 'Description' ? (
+              <textarea
+                name="Description"
+                value={updatedProduct.Description || ''}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                autoFocus
+                className="w-full border p-2"
+              />
+            ) : (
+              product.Description
+            )}
+          </p>
+
           <p className="mt-12 text-xl font-semibold text-right">{product.Price} VND</p>
           {product.Stock > 0 ? (
             <div className="mt-4 flex items-center justify-between">

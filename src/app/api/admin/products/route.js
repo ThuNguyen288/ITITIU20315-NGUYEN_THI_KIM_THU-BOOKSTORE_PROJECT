@@ -40,10 +40,12 @@ export async function POST(req) {
       penType,
       inkColor,
       author,
+      publisher,
       publishYear,
-      tags,
+      tags,  // Là mảng các TagID
       images,
     } = body;
+
     console.log("Product Data:", {
       name,
       description,
@@ -53,11 +55,12 @@ export async function POST(req) {
       penType,
       inkColor,
       author,
+      publisher,
       publishYear,
       tags,
       images,
     });
-    
+
     if (!name || !description || !cost || !price || !stock || !categoryId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -65,38 +68,29 @@ export async function POST(req) {
       );
     }
 
+    // Chuyển mảng tags thành chuỗi, cách nhau bằng dấu ","
+    const tagIds = Array.isArray(tags) ? tags.join(",") : "";
+
     // Thêm sản phẩm vào bảng `products`
     const [product] = await db.execute(
-      "INSERT INTO products (Name, Description, Cost, Price, Stock, CategoryID) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, description, cost,price, stock, categoryId]
+      "INSERT INTO products (Name, Description, Cost, Price, Stock, CategoryID, Author, Publisher, PublishYear, PenType, InkColor, TagID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        name,
+        description,
+        cost,
+        price,
+        stock,
+        categoryId,
+        author || null,
+        publisher || null,  // Publisher column (can be added if needed)
+        publishYear || null,
+        penType || null,
+        inkColor || null,
+        tagIds  // Lưu các TagID vào cột TagID dưới dạng chuỗi
+      ]
     );
 
     const productId = product.insertId;
-
-    // Thêm chi tiết sản phẩm cụ thể (sách hoặc bút)
-    if (categoryId === 1) {
-      await db.execute(
-        "INSERT INTO books (ProductID, Author, PublishYear) VALUES (?, ?, ?)",
-        [productId, author, publishYear]
-      );
-    } else if (categoryId === 2) {
-      await db.execute(
-        "INSERT INTO pens (ProductID, PenType, InkColor) VALUES (?, ?, ?)",
-        [productId, penType, inkColor]
-      );
-    }
-
-    // Thêm tags
-    if (Array.isArray(tags) && tags.length > 0) {
-      await Promise.all(
-        tags.map(async (tagId) => {
-          await db.execute(
-            "INSERT INTO product_tag (ProductID, TagID) VALUES (?, ?)",
-            [productId, tagId]
-          );
-        })
-      );
-    }
 
     // Thêm ảnh
     if (Array.isArray(images) && images.length > 0) {

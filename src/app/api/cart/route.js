@@ -2,7 +2,7 @@ import db from '../dbConect'; // Ensure correct path to your DB connection
 
 // POST method to add product to cart
 export async function POST(req) {
-  const { CustomerID, ProductID, Quantity } = await req.json(); // Get data from request body
+  const { CustomerID, ProductID, Quantity } = await req.json();
 
   if (!CustomerID || !ProductID || !Quantity) {
     return new Response(
@@ -12,38 +12,51 @@ export async function POST(req) {
   }
 
   try {
-    //Check if quantity > stock
-    const stock = await db.execute(`SELECT Stock FROM Products WHERE ProductID = ${ProductID}`);
-    
-    if (stock[0].Stock < Quantity) {
+    const [[stock]] = await db.execute(`SELECT Stock FROM Products WHERE ProductID = ?`, [ProductID]);
+
+    if (stock?.Stock < Quantity) {
       return new Response(
         JSON.stringify({ message: 'Insufficient stock.' }),
         { status: 400 }
-        );};
-    // Check if the product already exists in the cart for the given customer
+      );
+    }
+
     const [existingItem] = await db.execute(
       'SELECT * FROM cart WHERE CustomerID = ? AND ProductID = ?',
       [CustomerID, ProductID]
     );
 
     if (existingItem.length > 0) {
-      // If the product exists, update the quantity
       await db.execute(
         'UPDATE cart SET Quantity = Quantity + ? WHERE CustomerID = ? AND ProductID = ?',
         [Quantity, CustomerID, ProductID]
       );
     } else {
-      // If the product doesn't exist, insert a new record
       await db.execute(
         'INSERT INTO cart (CustomerID, ProductID, Quantity, AddedAt) VALUES (?, ?, ?, NOW())',
         [CustomerID, ProductID, Quantity]
       );
     }
 
+    // 🟩 TĂNG ĐIỂM TƯƠNG TÁC CHO USER VỚI TAG CỦA SẢN PHẨM
+   // Lấy các tag của sản phẩm
+    const [tags] = await db.execute(`
+      SELECT TagID FROM product_tag WHERE ProductID = ?
+    `, [ProductID]);
+
+// Tăng điểm cho từng tag
+    for (const tag of tags) {
+      await db.execute(`
+        INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
+        VALUES (?, ?, 2)
+        ON DUPLICATE KEY UPDATE Score = Score + 2
+      `, [CustomerID, tag.TagID]);
+}
     return new Response(
       JSON.stringify({ message: 'Product added to cart successfully.' }),
       { status: 200 }
     );
+
   } catch (error) {
     console.error('Error adding product to cart:', error);
     return new Response(

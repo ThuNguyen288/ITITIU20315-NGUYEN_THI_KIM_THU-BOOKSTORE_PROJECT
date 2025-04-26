@@ -16,6 +16,7 @@ export default function AdminProductInsert() {
   const [inkColor, setInkColor] = useState('Blue');
   const [author, setAuthor] = useState('');
   const [publishYear, setPublishYear] = useState('');
+  const [publisher, setPublisher] = useState('');
   const [categories, setCategories] = useState([]); // Store categories
   const [tags, setTags] = useState([]); // Store tags
   const [selectedTags, setSelectedTags] = useState([]); // Store selected tags
@@ -96,6 +97,7 @@ const handleImageChange = async (e) => {
       penType,
       inkColor,
       author,
+      publisher,
       publishYear,
       tags: selectedTags,  // Send selected tags
       images
@@ -268,6 +270,16 @@ const handleImageChange = async (e) => {
                 type="text"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Publisher</label>
+              <input
+                type="text"
+                value={publisher}
+                onChange={(e) => setPublisher(e.target.value)}
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 required
               />
