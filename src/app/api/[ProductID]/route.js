@@ -81,12 +81,12 @@ export async function GET(req, { params }) {
 
     // Chi tiết thêm theo Category
     if (product.CategoryID === 1) {
-      const [bookData] = await db.execute(`SELECT Author, PublishYear FROM books WHERE ProductID = ?`, [ProductID]);
+      const [bookData] = await db.execute(`SELECT Author, PublishYear FROM products WHERE ProductID = ?`, [ProductID]);
       if (bookData.length > 0) {
         Object.assign(product, bookData[0]);
       }
     } else if (product.CategoryID === 2) {
-      const [penData] = await db.execute(`SELECT PenType, InkColor FROM pens WHERE ProductID = ?`, [ProductID]);
+      const [penData] = await db.execute(`SELECT PenType, InkColor FROM products WHERE ProductID = ?`, [ProductID]);
       if (penData.length > 0) {
         Object.assign(product, penData[0]);
       }

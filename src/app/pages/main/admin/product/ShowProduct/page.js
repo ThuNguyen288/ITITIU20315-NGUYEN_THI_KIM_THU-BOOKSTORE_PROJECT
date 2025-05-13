@@ -77,7 +77,7 @@ export default function Products() {
   const router = useRouter();
 
   const handleAddClick = () => {
-    router.push('/pages/main/admin/product/AddProduct'); // Thay bằng đường dẫn em muốn chuyển đến
+    router.push('/pages/main/admin/product/AddProduct'); 
   };
 
   return (

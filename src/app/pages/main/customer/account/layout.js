@@ -1,5 +1,6 @@
 "use client"
-import AdminSidebar from "@/app/components/AdminSidebar";
+
+import Sidebar from "@/app/components/Sidebar";
 
 
 export default function RootLayout({ children }) {
@@ -7,7 +8,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <div className="grid-cols-5 grid">
-            <AdminSidebar className = ""/>
+            <Sidebar className = ""/>
             <div className="col-span-4">
                 {children}
             </div>

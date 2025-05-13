@@ -9,9 +9,7 @@ import { useAuth } from '../context/AuthContext'; // Import the context
 import SearchBar from './SearchBar';
 
 const accountGroup = [
-  { name: 'Account', href: '#' },
-  { name: 'Settings', href: '#' },
-  { name: 'Orders', href: '/pages/main/customer/orders' },
+  { name: 'Account', href: '/pages/main/customer/account/profile' },
   { name: 'Logout', href: '#' },
 ];
 

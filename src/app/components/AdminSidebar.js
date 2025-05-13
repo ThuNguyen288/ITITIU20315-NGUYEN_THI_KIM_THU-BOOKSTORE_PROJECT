@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { HomeIcon, BookOpenIcon, ShoppingBagIcon, UserIcon, BackwardIcon, BellIcon } from "@heroicons/react/24/outline";
 
-export default function Sidebar() {
+export default function AdminSidebar() {
   const pathname = usePathname();
 
   const menuItems = useMemo(

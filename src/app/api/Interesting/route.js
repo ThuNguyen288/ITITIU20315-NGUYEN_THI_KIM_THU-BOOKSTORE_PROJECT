@@ -17,6 +17,8 @@ export async function GET(req) {
           ANY_VALUE(p.Stock) AS Stock,
           ANY_VALUE(p.Clicked) AS Clicked,
           ANY_VALUE(p.CategoryID) AS CategoryID,
+          ANY_VALUE(p.Rating) AS Rating,
+          ANY_VALUE(p.RatingCount) AS RatingCount,
           ANY_VALUE(pi.ImageURL) AS image,
           SUM(cts.Score) AS TotalScore
       FROM customer_tag_scores cts

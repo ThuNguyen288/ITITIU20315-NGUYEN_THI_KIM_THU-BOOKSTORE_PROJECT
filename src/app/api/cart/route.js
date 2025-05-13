@@ -41,17 +41,24 @@ export async function POST(req) {
     // 🟩 TĂNG ĐIỂM TƯƠNG TÁC CHO USER VỚI TAG CỦA SẢN PHẨM
    // Lấy các tag của sản phẩm
     const [tags] = await db.execute(`
-      SELECT TagID FROM product_tag WHERE ProductID = ?
+      SELECT TagID FROM products WHERE ProductID = ?
     `, [ProductID]);
+ 
+    if (tags.length === 0) {
+      return new Response(JSON.stringify({ error: 'Không tìm thấy sản phẩm' }), { status: 404 });
+    }
 
-// Tăng điểm cho từng tag
-    for (const tag of tags) {
+    const tagString = tags[0].TagID; // Ví dụ: "1,4,7"
+    const tagIds = tagString.split(',').map(tag => parseInt(tag.trim())).filter(Number.isInteger);
+
+    // Duyệt từng TagID và cập nhật Score
+    for (const tagId of tagIds) {
       await db.execute(`
         INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
         VALUES (?, ?, 2)
         ON DUPLICATE KEY UPDATE Score = Score + 2
-      `, [CustomerID, tag.TagID]);
-}
+      `, [CustomerID, tagId]);
+    }
     return new Response(
       JSON.stringify({ message: 'Product added to cart successfully.' }),
       { status: 200 }
