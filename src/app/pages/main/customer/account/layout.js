@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
 import Sidebar from "@/app/components/Sidebar";
 
-
-export default function RootLayout({ children }) {
+export default function CustomerLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <div className="grid-cols-5 grid">
-            <Sidebar className = ""/>
-            <div className="col-span-4">
-                {children}
-            </div>
-        </div>
-          
-      </body>
-    </html>
+    <div className="flex min-h-screen bg-gray-50 text-gray-800">
+      {/* Sidebar cố định */}
+      <aside className="w-72">
+        <Sidebar />
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 overflow-auto">
+        {children}
+      </main>
+    </div>
   );
 }

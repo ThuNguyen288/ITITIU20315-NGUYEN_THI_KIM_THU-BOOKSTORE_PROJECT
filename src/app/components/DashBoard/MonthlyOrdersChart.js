@@ -12,7 +12,7 @@ export default function MonthlyOrdersChart() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get("/api/dashboard/MonthlyOrdersChart");
+        const response = await axios.get("/api/admin/dashboard/MonthlyOrdersChart");
         const rawData = response.data;
 
         console.log("API Data:", rawData);

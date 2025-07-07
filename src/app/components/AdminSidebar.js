@@ -13,7 +13,7 @@ export default function AdminSidebar() {
       { name: "Products", href: "/pages/main/admin/product/ShowProduct", icon: BookOpenIcon },
       { name: "Notification", href: "/pages/main/admin/notification", icon: BellIcon },
       { name: "Orders", href: "/pages/main/admin/orders", icon: ShoppingBagIcon },
-      { name: "Account", href: "/account", icon: UserIcon },
+      { name: "Account", href: "/pages/main/customer/account/profile", icon: UserIcon },
     ],
     []
   );

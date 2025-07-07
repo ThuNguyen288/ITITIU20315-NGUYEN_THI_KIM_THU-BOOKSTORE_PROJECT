@@ -53,13 +53,13 @@ export default function AccountPage() {
   if (!customer) return <div className="text-center mt-20">Loading...</div>
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-2xl shadow-md">
+    <div className="w-full mt-10 bg-white p-8 rounded-2xl shadow-md">
       <h2 className="text-3xl font-bold text-black mb-6">Profile</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField label="Name" name="Name" value={form.Name} onChange={handleChange} disabled={!isEditing} />
         <InputField label="Email" name="Email" value={form.Email} onChange={handleChange} disabled={!isEditing} />
         <InputField label="Phone Number" name="PhoneNumber" value={form.PhoneNumber} onChange={handleChange} disabled={!isEditing} />
-        <InputField label="Date of birth" name="DateOfBirth" type="date" value={form.DateOfBirth?.substring(0, 10)} onChange={handleChange} disabled={!isEditing} />
+        <InputField label="Date of birth" name="DateOfBirth" type="date" value={form.DateOfBirth} onChange={handleChange} disabled={!isEditing} />
         <div className="md:col-span-2">
         <InputField label="Address" name="Address" value={form.Address} onChange={handleChange} disabled={!isEditing} />
         </div>

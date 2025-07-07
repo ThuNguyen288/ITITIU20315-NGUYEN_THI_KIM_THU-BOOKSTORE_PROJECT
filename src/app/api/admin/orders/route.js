@@ -4,8 +4,10 @@ export async function GET() {
   try {
     // Fetch all orders from the database
     const [orders] = await db.execute(`
-      SELECT * 
-      FROM orders
+      SELECT O.* , C.Name
+      FROM orders AS O
+      LEFT JOIN Customers AS C
+      ON O.CustomerID = C.CustomerID
       ORDER BY 
         CASE Status
           WHEN 'Pending' THEN 1

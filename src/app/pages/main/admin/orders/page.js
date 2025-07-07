@@ -46,65 +46,63 @@ export default function Products() {
     }
   };
 
-  return (
-    <div className="products">
-      <h1 className="text-2xl font-bold text-center mb-6 pt-5">Orders</h1>
-      <div className="container mx-auto px-4">
-        {loading ? (
-          <p className="text-center">Loading...</p>
-        ) : error ? (
-          <p className="text-center text-red-600">{error}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse border border-gray-200 bg-white shadow-md">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-center w-20">ID</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-28">Customer ID</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center">Order Date</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-40">Total</th>
-                  <th className="border border-gray-300 px-4 py-2 text-center w-40">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order, index) => {
-                  const formattedDate = new Date(order.OrderDate).toLocaleDateString('en-GB'); // Format date to dd/mm/yyyy
-                  return (
-                    <tr
-                      key={order.OrderID}
-                      className="hover:bg-gray-50 cursor-pointer"
+return (
+  <div className="products">
+    <h1 className="text-3xl font-bold text-center mb-8 pt-5 text-gray-800">Orders Management</h1>
+    <div className="container mx-auto px-4">
+      {loading ? (
+        <p className="text-center text-gray-500">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-600">{error}</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
+          <table className="min-w-full table-auto text-sm text-gray-700">
+            <thead className="bg-gradient-to-r from-gray-100 to-gray-200">
+              <tr>
+                <th className="border px-4 py-3 text-center w-16">#</th>
+                <th className="border px-4 py-3 text-center">Customer</th>
+                <th className="border px-4 py-3 text-center w-32">Order Date</th>
+                <th className="border px-4 py-3 text-center w-32">Total</th>
+                <th className="border px-4 py-3 text-center w-48">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order, index) => {
+                const formattedDate = new Date(order.OrderDate).toLocaleDateString('en-GB');
+                return (
+                  <tr key={order.OrderID} className="hover:bg-gray-50 transition cursor-pointer">
+                    <td
+                      className="border px-4 py-2 text-center font-medium text-blue-600 hover:underline"
+                      onClick={() => window.location.href = `/pages/main/admin/orders/${order.OrderID}`}
                     >
-                      <td
-                        className="border border-gray-300 px-4 py-2 text-center"
-                        onClick={() => window.location.href = `/pages/main/admin/orders/${order.OrderID}`}
+                      {index + 1}
+                    </td>
+                    <td className="border px-4 py-2 text-center">{order.Name}</td>
+                    <td className="border px-4 py-2 text-center">{formattedDate}</td>
+                    <td className="border px-4 py-2 text-center">{order.Total} VND</td>
+                    <td className="border px-4 py-2 text-center">
+                      <select
+                        value={order.Status}
+                        onChange={(e) => handleStatusChange(order.OrderID, e.target.value)}
+                        className={`w-full px-3 py-2 rounded-md text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-blue-400
+                          ${order.Status === "Pending" ? "bg-red-100 text-red-700 border-red-300" :
+                             order.Status === "Shipped" ? "bg-yellow-100 text-yellow-700 border-yellow-300" :
+                             "bg-green-100 text-green-700 border-green-300"}`}
                       >
-                        {index + 1}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">{order.CustomerID}</td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">{formattedDate}</td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">{order.Total} VND</td>
-                      <td className="border border-gray-300 px-4 py-2 text-center">
-                        <select
-                          value={order.Status}
-                          onChange={(e) => handleStatusChange(order.OrderID, e.target.value)}
-                          className={`mt-1 block w-full p-2 border border-gray-300 rounded-md ${
-                            order.Status === "Pending" ? "bg-red-300" : "bg-green-300"
-                          }`}
-                          required
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Completed">Completed</option>
-                        </select>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                        <option value="Pending">🕒 Pending</option>
+                        <option value="Shipped">🚚 Shipped</option>
+                        <option value="Completed">✅ Completed</option>
+                      </select>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
+
 }

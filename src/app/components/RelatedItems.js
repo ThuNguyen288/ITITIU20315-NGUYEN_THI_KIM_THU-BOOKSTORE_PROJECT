@@ -3,6 +3,14 @@ import ProductList from "./ProductsCard";
 
 export default function RelatedItems({ currentProduct }) {
     return (
-    <ProductList title="Related Items" fetchUrl={`/api/RelatedItems?productId=${currentProduct.ProductID}`} />
+    <ProductList 
+    titleText="Related Items" 
+    titleElement=
+    {
+      <div>
+        Related Items
+      </div>
+    } 
+    fetchUrl={`/api/RelatedItems?productId=${currentProduct.ProductID}`} />
   )
 }

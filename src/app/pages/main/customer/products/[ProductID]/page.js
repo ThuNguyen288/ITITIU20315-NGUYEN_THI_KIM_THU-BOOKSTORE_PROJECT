@@ -1,4 +1,5 @@
 'use client';
+
 import RatingDisplay from '@/app/components/DisplayRating';
 import HotProducts from '@/app/components/HotProducts';
 import RelatedItems from '@/app/components/RelatedItems';
@@ -21,7 +22,6 @@ const ProductDetail = ({ params }) => {
     const fetchProduct = async () => {
       try {
         const { ProductID } = await params;
-
         const roleID = localStorage.getItem('roleId');
         const CustomerID = localStorage.getItem('customerId');
 
@@ -51,14 +51,10 @@ const ProductDetail = ({ params }) => {
   }, [params]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedRoleID = localStorage.getItem('roleId');
-      if (storedRoleID) {
-        setRoleID(storedRoleID);
-        if (storedRoleID === '2') {
-          setCanEdit(true);
-        }
-      }
+    const storedRoleID = localStorage.getItem('roleId');
+    if (storedRoleID) {
+      setRoleID(storedRoleID);
+      if (storedRoleID === '2') setCanEdit(true);
     }
   }, []);
 
@@ -97,11 +93,7 @@ const ProductDetail = ({ params }) => {
       const response = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          CustomerID,
-          ProductID: product.ProductID,
-          Quantity: quantity,
-        }),
+        body: JSON.stringify({ CustomerID, ProductID: product.ProductID, Quantity: quantity }),
       });
 
       if (!response.ok) throw new Error('Failed to add product to cart');
@@ -117,9 +109,7 @@ const ProductDetail = ({ params }) => {
 
   const handleQuantityChange = (e) => {
     const value = Number(e.target.value);
-    if (value >= 1 && value <= product.Stock) {
-      setQuantity(value);
-    }
+    if (value >= 1 && value <= product.Stock) setQuantity(value);
   };
 
   if (loading) return <div className="text-center">Loading...</div>;
@@ -127,192 +117,89 @@ const ProductDetail = ({ params }) => {
   if (!product) return <div>Product not found</div>;
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="grid grid-cols-2 gap-8">
-
-        {/* Name */}
-        <h1 className="font-semibold cursor-pointer" onDoubleClick={() => handleDoubleClick('Name')}>
-          {editingField === 'Name' ? (
-            <input
-              type="text"
-              name="Name"
-              value={updatedProduct.Name || ''}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              autoFocus
-              className="w-full border-none p-2 h-14 outline-none"
-            />
-          ) : (
-            product.Name
-          )}
-        </h1>
-
-        <div></div>
-
-        {/* Image */}
-        <div className="border border-gray-500 w-full h-full flex items-center justify-center">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="border border-gray-200 rounded-xl p-4 shadow-sm bg-white">
           <img
             src={product.image || 'https://via.placeholder.com/500'}
             alt={product.Name}
             onError={(e) => { e.target.src = 'https://via.placeholder.com/500'; }}
-            className="object-contain mx-auto w-fit"
+            className="w-full h-auto object-contain max-h-[500px]"
           />
         </div>
 
-        {/* Details */}
-        <div>
-          <div className="mt-4">
+        <div className="flex flex-col justify-between">
+          <h1
+            className="text-2xl sm:text-3xl font-bold mb-4 cursor-pointer"
+            onDoubleClick={() => handleDoubleClick('Name')}
+          >
+            {editingField === 'Name' ? (
+              <input
+                type="text"
+                name="Name"
+                value={updatedProduct.Name || ''}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                autoFocus
+                className="w-full border p-2 rounded"
+              />
+            ) : (
+              product.Name
+            )}
+          </h1>
+
+          <div className="space-y-2 text-gray-700 text-sm">
             {product.CategoryID === 1 ? (
               <>
-                <p className="cursor-pointer" onDoubleClick={() => handleDoubleClick('Author')}><strong>Author: </strong> 
-                {editingField === 'Author' ? (
-                  <input
-                    type="text"
-                    name="Author"
-                    value={updatedProduct.Author || ''}
-                    onChange={handleInputChange}
-                    onBlur={handleBlur}
-                    autoFocus
-                    className="w-full border p-2 outline-none"
-                  />
-                ) : (
-                  product.Author
-                )}
-                </p>
-                <p className="cursor-pointer" onDoubleClick={() => handleDoubleClick('PublishYear')}><strong>Publish Year: </strong> 
-                  {editingField === 'PublishYear' ? (
-                    <input
-                      type="text"
-                      name="PublishYear"
-                      value={updatedProduct.PublishYear || ''}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      autoFocus
-                      className="w-full border p-2 outline-none"
-                    />
-                  ) : (
-                    product.PublishYear
-                )}
-                </p>
+                <p onDoubleClick={() => handleDoubleClick('Author')}><strong>Author:</strong> {editingField === 'Author' ? <input name="Author" value={updatedProduct.Author || ''} onChange={handleInputChange} onBlur={handleBlur} className="w-full border p-2 rounded" autoFocus /> : product.Author}</p>
+                <p onDoubleClick={() => handleDoubleClick('PublishYear')}><strong>Publish Year:</strong> {editingField === 'PublishYear' ? <input name="PublishYear" value={updatedProduct.PublishYear || ''} onChange={handleInputChange} onBlur={handleBlur} className="w-full border p-2 rounded" autoFocus /> : product.PublishYear}</p>
               </>
             ) : product.CategoryID === 2 ? (
               <>
-              <p className="cursor-pointer" onDoubleClick={() => handleDoubleClick('PenType')}><strong>Pen Type: </strong> 
-                  {editingField === 'PenType' ? (
-                    <input
-                      type="text"
-                      name="PenType"
-                      value={updatedProduct.PenType || ''}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      autoFocus
-                      className="w-full border p-2 outline-none"
-                    />
-                  ) : (
-                    product.PenType
-                )}
-                </p>
-                <p className="cursor-pointer" onDoubleClick={() => handleDoubleClick('InkColor')}><strong>Ink Color: </strong> 
-                  {editingField === 'InkColor' ? (
-                    <input
-                      type="text"
-                      name="InkColor"
-                      value={updatedProduct.InkColor || ''}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      autoFocus
-                      className="w-full border p-2 outline-none"
-                    />
-                  ) : (
-                    product.InkColor
-                )}
-                </p>
+                <p onDoubleClick={() => handleDoubleClick('PenType')}><strong>Pen Type:</strong> {editingField === 'PenType' ? <input name="PenType" value={updatedProduct.PenType || ''} onChange={handleInputChange} onBlur={handleBlur} className="w-full border p-2 rounded" autoFocus /> : product.PenType}</p>
+                <p onDoubleClick={() => handleDoubleClick('InkColor')}><strong>Ink Color:</strong> {editingField === 'InkColor' ? <input name="InkColor" value={updatedProduct.InkColor || ''} onChange={handleInputChange} onBlur={handleBlur} className="w-full border p-2 rounded" autoFocus /> : product.InkColor}</p>
               </>
+            ) : <p><strong>Other Information:</strong> None</p>}
+          </div>
+
+          <div className="mt-4">
+            {editingField === 'Description' ? (
+              <textarea name="Description" value={updatedProduct.Description || ''} onChange={handleInputChange} onBlur={handleBlur} className="w-full border h-36 p-3 rounded outline-none text-sm" autoFocus />
             ) : (
-              <p><strong>Other Information:</strong> None</p>
+              <p className="text-sm text-gray-600 leading-relaxed cursor-pointer" onDoubleClick={() => handleDoubleClick('Description')}>
+                {product.Description}
+              </p>
             )}
           </div>
 
-          {/* Description */}
-          <p
-            className="mt-4 cursor-pointer"
-            onDoubleClick={() => handleDoubleClick('Description')}
-          >
-            {editingField === 'Description' ? (
-              <textarea
-                name="Description"
-                value={updatedProduct.Description || ''}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                autoFocus
-                className="w-full border h-40 p-2 outline-none"
-              />
-            ) : (
-              product.Description
-            )}
-          </p>
+          <div className="mt-6 text-right">
+            <p className="text-xl font-semibold cursor-pointer" onDoubleClick={() => handleDoubleClick('Price')}>
+              {editingField === 'Price' ? (
+                <input type="number" name="Price" value={updatedProduct.Price || ''} onChange={handleInputChange} onBlur={handleBlur} className="border p-2 w-32 text-right rounded" autoFocus />
+              ) : (
+                `${product.Price} VND`
+              )}
+            </p>
+          </div>
 
-          {/* Price */}
-          <p
-            className="mt-12 text-xl font-semibold text-right cursor-pointer"
-            onDoubleClick={() => handleDoubleClick('Price')}
-          >
-            {editingField === 'Price' ? (
-              <input
-                type="number"
-                name="Price"
-                value={updatedProduct.Price || ''}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                autoFocus
-                className="w-full border p-2 h-14 outline-none text-right"
-              />
-            ) : (
-              `${product.Price} VND`
-            )}
-          </p>
-
-          {/* Add to cart */}
           {roleID === '1' && (
-            product.Stock > 0 ? (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center">
-                  <label htmlFor="quantity" className="mr-2">
-                    Quantity:
-                  </label>
-                  <input
-                    type="number"
-                    id="quantity"
-                    value={quantity}
-                    min="1"
-                    max={product.Stock}
-                    onChange={handleQuantityChange}
-                    className="border p-2 rounded"
-                  />
-                </div>
-                <button
-                  onClick={handleAddToCart}
-                  className="bg-blue-500 text-white p-2 rounded"
-                >
-                  Add to Cart
-                </button>
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <label htmlFor="quantity" className="text-sm font-medium">Quantity:</label>
+                <input type="number" id="quantity" value={quantity} min="1" max={product.Stock} onChange={handleQuantityChange} className="border rounded px-3 py-1 w-20 text-sm" />
               </div>
-            ) : (
-              <p className="text-red-500 mt-4">Out of stock</p>
-            )
+              <button onClick={handleAddToCart} className="bg-primaryCustom text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-primaryCustom-dark transition">
+                Add to Cart
+              </button>
+            </div>
           )}
 
-          {/* Tags */}
-          {product.Tags && product.Tags.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-base font-medium">Tags:</h4>
+          {product.Tags?.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-base font-medium mb-2">Tags:</h4>
               <div className="flex flex-wrap gap-2">
                 {product.Tags.map((tag, index) => (
-                  <Link
-                    href={`/pages/main/customer/search?attribute=${tag}`}
-                    key={index}
-                    className="px-3 py-1 no-underline text-black bg-gray-200 rounded-full text-sm"
-                  >
+                  <Link key={index} href={`/pages/main/customer/search?attribute=${tag}`} className="px-3 py-1 bg-pink-100 text-pink-800 text-xs font-medium rounded-full hover:bg-pink-200 transition no-underline">
                     {tag}
                   </Link>
                 ))}
@@ -322,16 +209,14 @@ const ProductDetail = ({ params }) => {
         </div>
       </div>
 
-      {/* Notification */}
       {showNotification && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg">
           {notification}
         </div>
       )}
-      {/*Review and Rating*/}
+
       <hr className="my-10" />
       <RatingDisplay productId={product.ProductID} />
-      {/* Related and Hot products */}
       <hr className="my-10" />
       <RelatedItems currentProduct={product} />
       <hr className="my-10" />

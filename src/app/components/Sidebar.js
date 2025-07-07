@@ -17,7 +17,7 @@ export default function Sidebar() {
   );
 
   return (
-    <div className="h-screen w-72 bg-transparent text-black flex flex-col p-4 border-r-2 sticky top-0">
+<div className="fixed top-0 left-0 h-screen w-72 bg-transparent text-black flex flex-col p-4 border-r-2 z-40 mt-32">
       {/* MENU ITEMS */}
       <div className="flex flex-col flex-grow mt-4 space-y-2">
         {menuItems.map((item) => {

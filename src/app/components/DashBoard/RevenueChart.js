@@ -12,7 +12,7 @@ export default function RevenueChart() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get("/api/dashboard/RevenueChart");
+        const response = await axios.get("/api/admin/dashboard/RevenueChart");
         setData(response.data);
       } catch (error) {
         console.error("Error fetching revenue data:", error);
@@ -23,17 +23,18 @@ export default function RevenueChart() {
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-        <XAxis dataKey="Month"/>
-        <YAxis />
-        <Tooltip />
-        <Legend wrapperStyle={{ fontSize: "14px", marginRight: "20px" }} />
+    <LineChart data={data} margin={{ top: 40, right: 30, left: 20, bottom: 5 }}>
+    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+    <XAxis dataKey="Month" />
+    <YAxis domain={[0, (dataMax) => dataMax * 1.1]} />
+    <Tooltip />
+    <Legend wrapperStyle={{ fontSize: "14px", marginRight: "20px" }} />
 
-        {Object.keys(COLORS).map((key) => (
-          <Line key={key} type="monotone" dataKey={key} stroke={COLORS[key]} name={key} dot={false} />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+    {Object.keys(COLORS).map((key) => (
+      <Line key={key} type="monotone" dataKey={key} stroke={COLORS[key]} name={key} dot={false} connectNulls />
+    ))}
+  </LineChart>
+</ResponsiveContainer>
+
   );
 }

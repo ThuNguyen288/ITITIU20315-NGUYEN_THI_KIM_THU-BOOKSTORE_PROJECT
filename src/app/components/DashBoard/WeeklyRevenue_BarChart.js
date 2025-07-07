@@ -9,7 +9,7 @@ export default function WeeklyRevenueChart() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get("/api/dashboard/WeeklyRevenue");
+        const response = await axios.get("/api/admin/dashboard/WeeklyRevenue");
         const apiData = response.data;
 
         // Danh sách thứ trong tuần (Monday -> Sunday)

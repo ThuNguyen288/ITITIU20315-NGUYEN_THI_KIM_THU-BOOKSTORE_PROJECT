@@ -1,3 +1,5 @@
+const themeColors = require('./src/app/styles/theme');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -8,8 +10,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primaryCustom: themeColors.primary,
+        secondaryCustom: themeColors.secondary,
+        accent: themeColors.accent,
+        background: {
+          ...themeColors.background,
+          DEFAULT: "var(--background)", // Optional nếu dùng CSS vars
+        },
+        neutral: themeColors.neutral,
+        foreground: "var(--foreground)", // Nếu cần foreground riêng
       },
     },
   },

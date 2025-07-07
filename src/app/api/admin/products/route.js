@@ -73,7 +73,7 @@ export async function POST(req) {
 
     // Thêm sản phẩm vào bảng `products`
     const [product] = await db.execute(
-      "INSERT INTO products (Name, Description, Cost, Price, Stock, CategoryID, Author, Publisher, PublishYear, PenType, InkColor, TagID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO products (Name, Description, Cost, OriginalPrice, Stock, CategoryID, Author, Publisher, PublishYear, PenType, InkColor, TagID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         name,
         description,

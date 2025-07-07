@@ -8,37 +8,66 @@ export default function PriceSuggestionList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch suggestions
+  const fetchSuggestions = async () => {
+    try {
+      const getRes = await fetch("/api/admin/suggestion");
+      if (!getRes.ok) throw new Error("Failed to fetch price suggestions");
+
+      const data = await getRes.json();
+      if (!data.products || !Array.isArray(data.products)) {
+        throw new Error("Invalid product data");
+      }
+      setProducts(data.products);
+    } catch (err) {
+      console.error("Error fetching suggestions:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const handleSuggestions = async () => {
       try {
-        // 1. Gửi POST request để tính toán và lưu đề xuất vào DB
-        const postRes = await fetch("/api/admin/suggestion", {
-          method: "POST",
-        });
-  
+        const postRes = await fetch("/api/admin/suggestion", { method: "POST" });
         if (!postRes.ok) throw new Error("Failed to generate price suggestions");
-  
-        // 2. Sau khi POST xong, gọi GET để lấy danh sách
-        const getRes = await fetch("/api/admin/suggestion");
-        if (!getRes.ok) throw new Error("Failed to fetch price suggestions");
-  
-        const data = await getRes.json();
-        if (!data.products || !Array.isArray(data.products)) {
-          throw new Error("Invalid product data");
-        }
-  
-        setProducts(data.products);
+        await fetchSuggestions();
       } catch (err) {
         console.error("Error in suggestion flow:", err);
         setError(err.message);
-      } finally {
-        setLoading(false);
       }
     };
-  
+
     handleSuggestions();
   }, []);
-  
+
+  // Handle Accept Suggestion
+  const handleAcceptSuggestion = async (productId, suggestionType) => {
+    if (suggestionType === "NO_CHANGE") {
+      alert("This is a suggestion for review only, no price change.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/suggestion/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, suggestionType }),
+      });
+
+      if (!res.ok) throw new Error("Failed to accept suggestion");
+
+      alert("Suggestion accepted!");
+
+      // Remove from UI
+      setProducts((prev) => prev.filter(item => item.ProductID !== productId));
+
+    } catch (err) {
+      console.error("Error accepting suggestion:", err);
+      alert("Error accepting suggestion");
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-2">
@@ -50,9 +79,9 @@ export default function PriceSuggestionList() {
       ) : error ? (
         <p className="text-center text-red-600">{error}</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {products.map((product, index) => (
-            <div key={index+1} className="max-w-xs rounded-lg hover:shadow-lg p-2 pb-2 border">
+            <div key={index} className="max-w-xs rounded-lg hover:shadow-lg p-2 pb-2 border">
               <Link href={`/pages/main/customer/products/${product.ProductID}`}>
                 <img
                   src={product.image || "https://via.placeholder.com/200"}
@@ -61,20 +90,45 @@ export default function PriceSuggestionList() {
                 />
               </Link>
 
-              <div className="text-center mt-2">
-                <span className="text-sm font-semibold text-gray-800 block">{product.Name}</span>
-                <span className="text-xs text-gray-500 block">Sold: {product.Sold}</span>
-                <span className="text-xs text-gray-500 block">Clicked: {product.Clicked}</span>
-              </div>
-
-              <div className="text-center mt-2 text-sm">
+              <div className="text-center mt-2 text-xs">
                 <p>Current Price: <strong>{product.CurrentPrice}</strong></p>
-                <p>
-                  Suggested: <span className={`font-semibold ${product.SuggestionType === "INCREASE" ? "text-green-600" : "text-red-600"}`}>
+                {product.SuggestionType !== "NO_CHANGE" && (
+                <p> Suggested:{" "}
+                  <span
+                    className={`font-semibold ${
+                      product.SuggestionType === "INCREASE"
+                        ? "text-green-600"
+                        : product.SuggestionType === "DECREASE"
+                        ? "text-red-600"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {product.SuggestedPrice}
                   </span>
                 </p>
-                <p className={`text-xs text-gray-500 italic  ${product.SuggestionType === "INCREASE" ? "text-green-600" : "text-red-600"}`}>({product.SuggestionType})</p>
+              )}
+                <p className={`text-xs italic ${
+                  product.SuggestionType === "INCREASE"
+                    ? "text-green-600"
+                    : product.SuggestionType === "DECREASE"
+                    ? "text-red-600"
+                    : "text-gray-500"
+                }`}>
+                  ({product.SuggestionType === "NO_CHANGE" ? "For Review" : product.SuggestionType})
+                </p>
+
+                {product.SuggestionType !== "NO_CHANGE" ? (
+                  <button
+                    onClick={() => handleAcceptSuggestion(product.ProductID, product.SuggestionType)}
+                    className="mt-2 bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
+                  >
+                    Accept Suggestion
+                  </button>
+                ) : (
+                  <p className="text-gray-500 mt-1 text-xs italic">
+                    {product.Reason}
+                  </p>
+                )}
               </div>
             </div>
           ))}

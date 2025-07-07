@@ -29,7 +29,7 @@ export default function Products() {
 
 
   return (
-    <div className="products py-8 px-2 max-w-5xl mx-auto">
+    <div className="products py-8 px-2 w-full">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">🧾Order History</h1>
   
       {loading ? (

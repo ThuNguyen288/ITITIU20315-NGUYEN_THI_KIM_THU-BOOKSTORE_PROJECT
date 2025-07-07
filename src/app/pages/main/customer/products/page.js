@@ -4,6 +4,13 @@ import ProductList from "@/app/components/ProductsCard";
 
 export default function AllProducts() {
     return (
-    <ProductList title="All Products" fetchUrl={`/api/products`} />
+    <ProductList 
+      titleText="All Products"
+      titleElement={
+        <div>
+          All Products
+        </div>
+      } 
+    fetchUrl={`/api/products`} />
   )
 }

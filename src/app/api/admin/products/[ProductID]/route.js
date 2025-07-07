@@ -1,10 +1,9 @@
-// pages/api/admin/products/[ProductID].js
 import db from "../../../dbConect";
 
-// DELETE method to remove a product
+// DELETE method to remove a product (set status = inactive)
 export async function DELETE(req, { params }) {
   try {
-    const { ProductID } = await params; // Directly access params
+    const { ProductID } = params;
 
     if (!ProductID) {
       return new Response(
@@ -13,10 +12,8 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    console.log(`Deleting product with ID: ${ProductID}`);
-
     const [result] = await db.execute(
-      "DELETE FROM products WHERE ProductID = ?",
+      "UPDATE products SET status = 'inactive' WHERE ProductID = ?",
       [ProductID]
     );
 
@@ -28,83 +25,85 @@ export async function DELETE(req, { params }) {
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Product deleted successfully" }),
+      JSON.stringify({ success: true, message: "Product deleted (set inactive) successfully" }),
       { status: 200 }
     );
   } catch (err) {
     console.error("Error deleting product:", err);
-
     return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message,
-      }),
+      JSON.stringify({ error: "Internal Server Error", details: err.message }),
       { status: 500 }
     );
   }
 }
 
-// PUT method to update product details
+// PUT method to update product details (dynamic fields)
 export async function PUT(req, { params }) {
   try {
-    const { ProductID } = await params; // Directly access params
-    const { Name, Price, Stock } = await req.json();
+    const { ProductID } = await params;
+    const body = await req.json();
 
-    if (!ProductID || !Name || !Price || !Stock) {
-      return new Response(
-        JSON.stringify({ error: "ProductID, Name, Price, and Stock are required" }),
-        { status: 400 }
-      );
+    if (!ProductID) {
+      return new Response(JSON.stringify({ error: "ProductID is required" }), { status: 400 });
     }
 
-    const [result] = await db.execute(
-      "UPDATE products SET Name = ?, Price = ?, Stock = ? WHERE ProductID = ?",
-      [Name, Price, Stock, ProductID]
-    );
-    
-    const [product] = await db.execute(
-      "SELECT Name, Stock FROM products WHERE ProductID = ?",
-      [ProductID]
-    );
+    // Build query dynamic depending on which fields are sent
+    const fields = [];
+    const values = [];
 
-    if (product.length === 0) {
-      return new Response(
-        JSON.stringify({ error: `Product with ID ${ProductID} not found after update` }),
-        { status: 404 }
-      );
+    if ('Name' in body) {
+      fields.push("Name = ?");
+      values.push(body.Name);
+    }
+    if ('OriginalPrice' in body) {
+      fields.push("OriginalPrice = ?");
+      values.push(body.OriginalPrice);
+    }
+    if ('Stock' in body) {
+      fields.push("Stock = ?");
+      values.push(body.Stock);
+    }
+    if ('discount' in body) {
+      fields.push("discount = ?");
+      values.push(body.discount);
     }
 
-    const { Name: productName, Stock: productStock } = product[0];
+    if (fields.length === 0) {
+      return new Response(JSON.stringify({ error: "No valid fields to update" }), { status: 400 });
+    }
 
-    // Nếu hết hàng, tạo thông báo
-    if (productStock === 0) {
-      await db.execute(
-        `
+    const query = `UPDATE products SET ${fields.join(", ")} WHERE ProductID = ?`;
+    values.push(ProductID);
+
+    const [result] = await db.execute(query, values);
+
+    if (result.affectedRows === 0) {
+      return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
+    }
+
+    // Check stock for zero → create notification if out of stock
+    if ('Stock' in body && body.Stock === 0) {
+      const [productInfo] = await db.execute(
+        "SELECT Name FROM products WHERE ProductID = ?",
+        [ProductID]
+      );
+      const productName = productInfo[0]?.Name || 'Unknown product';
+
+      await db.execute(`
         INSERT INTO notifications (ProductID, Message, CreatedAt, Status)
         VALUES (?, ?, NOW(), 'Unread')
-        `,
-        [ProductID, `Sản phẩm ${productName}, ID: ${ProductID} hết hàng`]
-      );
-    }
-    if (result.affectedRows === 0) {
-      return new Response(
-        JSON.stringify({ error: "Product not found" }),
-        { status: 404 }
-      );
+      `, [ProductID, `Sản phẩm ${productName} (ID: ${ProductID}) đã hết hàng`]);
     }
 
     return new Response(
       JSON.stringify({ success: true, message: "Product updated successfully" }),
       { status: 200 }
     );
+
   } catch (err) {
     console.error("Error updating product:", err);
-
     return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message,
-      }),
+      JSON.stringify({ error: "Internal Server Error", details: err.message }),
       { status: 500 }
     );
   }

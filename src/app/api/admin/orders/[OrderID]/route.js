@@ -1,51 +1,9 @@
 import db from "../../../dbConect";
 
-// PUT method to update the order status
-export async function PUT(req, context) {
-  try {
-    const params = await context.params; // Ensure `params` is resolved
-    const { OrderID } = params;
-    const { Status } = await req.json(); // Parse JSON body
-
-    // Validate input
-    if (!OrderID || !Status) {
-      return new Response(
-        JSON.stringify({ error: "Invalid input: OrderID and Status are required." }),
-        { status: 400 }
-      );
-    }
-
-    // Update order status
-    const [result] = await db.execute(
-      "UPDATE orders SET Status = ? WHERE OrderID = ?",
-      [Status, OrderID]
-    );
-
-    if (result.affectedRows === 0) {
-      return new Response(
-        JSON.stringify({ error: "Order not found" }),
-        { status: 404 }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, message: "Order updated successfully" }),
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("Error updating order:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal Server Error", details: err.message }),
-      { status: 500 }
-    );
-  }
-}
-
-// GET method to fetch order and product details
+// GET method to fetch order info and details
 export async function GET(req, context) {
   try {
-    const params = await context.params; // Ensure `params` is resolved
-    const { OrderID } = params;
+    const { OrderID } = context.params;
 
     if (!OrderID) {
       return new Response(
@@ -54,22 +12,42 @@ export async function GET(req, context) {
       );
     }
 
-    // Fetch order details
-    const [orderDetails] = await db.execute(
-      "SELECT * FROM orderdetails WHERE OrderID = ?",
+    // 1. Lấy thông tin đơn hàng trực tiếp từ bảng orders
+    const [orderInfoRows] = await db.execute(
+      `SELECT OrderID, OrderDate, Status, Name AS CustomerName, Phone AS PhoneNumber, Address
+       FROM orders
+       WHERE OrderID = ?`,
       [OrderID]
     );
+    console.log(orderInfoRows)
 
-    if (orderDetails.length === 0) {
+    if (orderInfoRows.length === 0) {
       return new Response(
         JSON.stringify({ error: "Order not found" }),
         { status: 404 }
       );
     }
+
+    // 2. Lấy chi tiết sản phẩm trong đơn hàng
+    const [orderDetailsRows] = await db.execute(
+      `SELECT Od.ProductID, Od.Quantity, 
+              P.Name, P.Price,
+              PI.ImageURL
+       FROM orderdetails AS Od
+       JOIN products AS P ON Od.ProductID = P.ProductID
+       LEFT JOIN productimages AS PI ON PI.ProductID = P.ProductID AND PI.IsPrimary = 1
+       WHERE Od.OrderID = ?`,
+      [OrderID]
+    );
+
     return new Response(
-      JSON.stringify({ orderDetails }),
+      JSON.stringify({
+        orderInfo: orderInfoRows[0],
+        orderDetails: orderDetailsRows
+      }),
       { status: 200 }
     );
+
   } catch (err) {
     console.error("Error fetching order or products:", err);
     return new Response(

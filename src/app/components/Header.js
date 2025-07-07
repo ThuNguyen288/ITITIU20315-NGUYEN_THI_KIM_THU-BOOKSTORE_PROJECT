@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../context/AuthContext'; // Import the context
 import SearchBar from './SearchBar';
+import { useRouter } from 'next/navigation';
 
 const accountGroup = [
   { name: 'Account', href: '/pages/main/customer/account/profile' },
@@ -17,6 +18,7 @@ export default function Header() {
   const { isAuthenticated, logout } = useAuth(); // Sử dụng context
   const [roleId, setRoleId] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Quản lý trạng thái sidebar
+  const router = useRouter();
 
   // Lấy roleId từ localStorage nếu đã lưu
   useEffect(() => {
@@ -30,65 +32,53 @@ export default function Header() {
   const handleLogout = () => {
     logout();
     localStorage.clear(); // Xóa tất cả thông tin trong localStorage
+    router.push("/")
   };
 
   return (
-    <header className="bg-white">
-      <nav aria-label="Global" className="mx-auto flex max-w-100 items-center justify-between p-6 lg:px-8">
-        {/* Logo */}
-        <div className="flex lg:flex-1 items-center">
-          <a href="/pages/main/customer/dashboard" className="-m-1.5 p-1.5 flex items-center no-underline">
-            <span className="sr-only">Rainbow</span>
-            <Image alt="Your Company" src={Logo} className="h-8 w-auto mr-2" />
-            <h5 className="text-sm align-middle text-black my-auto font-semibold">Rainbow</h5>
-          </a>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)} // Mở sidebar
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-          >
-            <span className="sr-only">Open main menu</span>
-            <Bars3Icon aria-hidden="true" className="h-6 w-6" />
-          </button>
-        </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden lg:flex lg:gap-x-12">
-          <Link href="/pages/main/customer/products" className="text-sm font-semibold text-gray-900 no-underline">All Products</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900 no-underline">Books</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900 no-underline">Pens</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900 no-underline">Others</Link>
-        </div>
-
-        {/* User Menu */}
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          {!isAuthenticated ? (
-            <Link href="/pages/auth/login" className="flex items-center text-sm font-semibold text-gray-900 hover:text-indigo-600">
-              <UserIcon className="h-6 w-6 mr-2" />
-              Login
+    <header className="bg-white fixed z-50 w-full shadow-sm">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <Link href="/pages/main/customer/dashboard" className="flex items-center gap-2 no-underline">
+              <Image src={Logo} alt="Rainbow Logo" className="h-8 w-auto" />
+              <h5 className="text-base font-medium text-gray-800">Rainbow</h5>
             </Link>
-          ) : (
-            <div className="flex">
-              <SearchBar />
-              <Link href="/pages/main/customer/cart" className="flex items-center text-sm font-semibold text-gray-900">
-                <ShoppingBagIcon className="h-6 w-6 text-gray-900" />
+          </div>
+
+          {/* Desktop Menu */}
+          <div className="hidden lg:flex items-center gap-6">
+            <Link href="/pages/main/customer/products" className="text-sm font-medium text-gray-600 hover:text-primary no-underline">All Products</Link>
+            <Link href="/pages/main/customer/products/books" className="text-sm font-medium text-gray-600 hover:text-primary no-underline">Books</Link>
+            <Link href="/pages/main/customer/products/pens" className="text-sm font-medium text-gray-600 hover:text-primary no-underline">Pens</Link>
+            <Link href="/pages/main/customer/products/others" className="text-sm font-medium text-gray-600 hover:text-primary no-underline">Others</Link>
+          </div>
+
+          {/* User Actions */}
+          <div className="hidden lg:flex items-center gap-4">
+            <SearchBar />
+            {!isAuthenticated ? (
+              <Link href="/pages/auth/login" className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary no-underline">
+                <UserIcon className="h-5 w-5" />
+                Login
               </Link>
-              <Menu as="div" className="relative inline-block text-left">
-                <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-gray-300 hover:bg-gray-50">
-                  <UserIcon className="h-6 w-6" />
-                </MenuButton>
-                <MenuItems className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                  <div className="py-1">
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link href="/pages/main/customer/cart" className="text-gray-600 hover:text-primary">
+                  <ShoppingBagIcon className="h-5 w-5" />
+                </Link>
+                <Menu as="div" className="relative">
+                  <MenuButton className="p-2 bg-white border rounded-full hover:ring-2 hover:ring-primary transition">
+                    <UserIcon className="h-5 w-5 text-gray-600" />
+                  </MenuButton>
+                  <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg py-2 z-50">
                     {roleId === 2 && (
                       <MenuItem>
                         {({ active }) => (
                           <Link
                             href="/pages/main/admin/dashboard"
-                            className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md no-underline text-black`}
+                            className={`block px-4 py-2 text-sm ${active ? 'bg-accent-yellow' : ''}`}
                           >
                             Admin
                           </Link>
@@ -101,7 +91,7 @@ export default function Header() {
                           {({ active }) => (
                             <button
                               onClick={handleLogout}
-                              className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md`}
+                              className={`block w-full text-left px-4 py-2 text-sm ${active ? 'bg-accent-pink' : ''}`}
                             >
                               {item.name}
                             </button>
@@ -112,7 +102,7 @@ export default function Header() {
                           {({ active }) => (
                             <Link
                               href={item.href}
-                              className={`${active ? 'bg-gray-100' : ''} block w-full text-left p-2 rounded-md no-underline text-black`}
+                              className={`block px-4 py-2 text-sm ${active ? 'bg-accent-purple' : ''}`}
                             >
                               {item.name}
                             </Link>
@@ -120,42 +110,53 @@ export default function Header() {
                         </MenuItem>
                       )
                     )}
-                  </div>
-                </MenuItems>
-              </Menu>
-            </div>
-          )}
+                  </MenuItems>
+                </Menu>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Button */}
+          <div className="flex lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-md bg-primary text-white hover:bg-primary-dark transition"
+            >
+              <Bars3Icon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Sidebar (Mobile) */}
+      {/* Sidebar Overlay (Mobile) */}
       <div
-        className={`fixed inset-0 z-50 bg-gray-800 bg-opacity-50 transition-opacity lg:hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setSidebarOpen(false)} // Đóng sidebar khi click ra ngoài
-      ></div>
+        className={`fixed inset-0 z-40 bg-gray-800 bg-opacity-50 transition-opacity lg:hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      {/* Sidebar Drawer (Mobile) */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 transform bg-white transition-transform ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-        style={{ width: '250px' }}
+        className={`fixed inset-y-0 right-0 z-50 w-64 bg-white transform transition-transform lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        <div className="flex justify-between p-4">
-          <h2 className="text-xl font-semibold">Menu</h2>
-          <button onClick={() => setSidebarOpen(false)} className="text-gray-700">
-            <XMarkIcon className="h-6 w-6" />
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
+          <button onClick={() => setSidebarOpen(false)} className="text-gray-600">
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex flex-col space-y-4 px-4">
-          <Link href="/pages/main/customer/products" className="text-sm font-semibold text-gray-900">All Products</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900">Books</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900">Pens</Link>
-          <Link href="#" className="text-sm font-semibold text-gray-900">Others</Link>
+        <div className="flex flex-col gap-4 px-4 py-6">
+          <Link href="/pages/main/customer/products" className="text-sm font-medium text-gray-700">All Products</Link>
+          <Link href="#" className="text-sm font-medium text-gray-700">Books</Link>
+          <Link href="#" className="text-sm font-medium text-gray-700">Pens</Link>
+          <Link href="#" className="text-sm font-medium text-gray-700">Others</Link>
           {!isAuthenticated ? (
-            <Link href="/pages/auth/login" className="text-sm font-semibold text-gray-900">Login</Link>
+            <Link href="/pages/auth/login" className="text-sm font-medium text-gray-700">Login</Link>
           ) : (
-            <div className="flex flex-col space-y-4">
+            <>
               <hr />
-              <Link href="/pages/main/customer/cart" className="text-sm font-semibold text-gray-900">Cart</Link>
-              <button onClick={handleLogout} className="text-sm font-semibold text-gray-900 text-left">Logout</button>
-            </div>
+              <Link href="/pages/main/customer/cart" className="text-sm font-medium text-gray-700">Cart</Link>
+              <button onClick={handleLogout} className="text-sm font-medium text-left text-gray-700">Logout</button>
+            </>
           )}
         </div>
       </div>
