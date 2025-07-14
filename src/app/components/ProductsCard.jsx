@@ -104,6 +104,7 @@ export default function ProductList({ titleText, titleElement, fetchUrl }) {
     }
   };
 
+  const roleId = localStorage.getItem("roleId")
   const handleSortChange = (e) => setSortOption(e.target.value);
   const handlePageChange = (e, page) => setCurrentPage(page);
 
@@ -259,13 +260,14 @@ export default function ProductList({ titleText, titleElement, fetchUrl }) {
                             </span>
                           )}
                         </div>
-
+                        {roleId !== '2' && (
                         <button
                           onClick={() => handleAddToCart(product.ProductID)}
                           className="p-2 bg-secondaryCustom hover:bg-secondaryCustom-dark rounded-full transition"
                         >
                           <ShoppingBagIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 mt-3 text-xs sm:text-sm text-gray-600 items-center justify-center px-2 sm:px-4">

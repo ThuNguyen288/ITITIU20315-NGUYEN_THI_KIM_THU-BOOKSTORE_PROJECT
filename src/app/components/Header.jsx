@@ -78,7 +78,7 @@ export default function Header() {
                         {({ active }) => (
                           <Link
                             href="/pages/main/admin/dashboard"
-                            className={`block px-4 py-2 text-sm ${active ? 'bg-accent-yellow' : ''}`}
+                            className={`block px-4 py-2 text-sm ${active ? 'bg-accent-yellow' : ''} no-underline text-zinc-700`}
                           >
                             Admin
                           </Link>
@@ -102,7 +102,7 @@ export default function Header() {
                           {({ active }) => (
                             <Link
                               href={item.href}
-                              className={`block px-4 py-2 text-sm ${active ? 'bg-accent-purple' : ''}`}
+                              className={`block px-4 py-2 text-sm ${active ? 'bg-accent-purple' : ''} no-underline text-zinc-700`}
                             >
                               {item.name}
                             </Link>

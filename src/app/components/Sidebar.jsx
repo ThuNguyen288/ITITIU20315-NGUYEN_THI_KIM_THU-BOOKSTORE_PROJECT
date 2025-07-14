@@ -10,7 +10,7 @@ export default function Sidebar() {
   const menuItems = useMemo(
     () => [
       { name: "Profile", href: "/pages/main/customer/account/profile", icon: HomeIcon },
-      { name: "Password", href: "/pages/main/customer/account/password", icon: KeyIcon },
+      { name: "Password", href: "/pages/main/customer/account/changePassword", icon: KeyIcon },
       { name: "Orders", href: "/pages/main/customer/account/orders", icon: ShoppingBagIcon },
     ],
     []

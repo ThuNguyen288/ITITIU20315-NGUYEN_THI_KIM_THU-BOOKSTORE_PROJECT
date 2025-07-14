@@ -1,3 +1,4 @@
+import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 
 export default function CustomerLayout({ children }) {
@@ -10,6 +11,7 @@ export default function CustomerLayout({ children }) {
       <main className="pt-16"> {/* pt-16 để tránh header che mất phần trên */}
         {children}
       </main>
+      <Footer/>
     </div>
   );
 }

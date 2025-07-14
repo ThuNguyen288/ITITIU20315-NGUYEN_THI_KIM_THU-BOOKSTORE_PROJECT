@@ -1,98 +1,103 @@
-'use client'; // This marks the file as a Client Component
-
-import 'bootstrap/dist/css/bootstrap.min.css';
-import dynamic from 'next/dynamic';
+'use client';
 import { useState } from 'react';
-import './Register.css';
 import { useRouter } from 'next/navigation';
-
-
-// Dynamically load Bootstrap JS to avoid SSR issues
-const Bootstrap = dynamic(() => import('bootstrap/dist/js/bootstrap.bundle.min.js'), { ssr: false });
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function SignUp() {
-  // Define state for form inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async () => {
     e.preventDefault();
-
-    if (!email || !password || !name ) {
-      alert('All fields are required');
-      return;
+    if (!email || !password || !name) {
+      return toast.error('All fields are required');
     }
 
-    const userData = { email, password, name };
-
+    setStatus('loading');
     try {
-      const response = await fetch('/api/register', {
+      const res = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
       });
 
-      const result = await response.json();
-      if (response.ok) {
-        alert(result.message); // Success message
-        router.push('./login');
-      } else {
-        alert(result.error); // Error message
-      }
-    } catch (error) {
-      console.error('Error during registration:', error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
+
+      toast.success('Registration successful!');
+      setTimeout(() => router.push('./login'), 2000);
+    } catch {
+      toast.error(err.message);
+    } finally {
+      setStatus('idle');
     }
   };
 
   return (
-    <div className="w-1/2 row justify-center place-self-center">
-      <div className="col-md-4 p-5">
-        <h2 className="text-center">Sign Up</h2>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-secondaryCustom to-primaryCustom">
+      <Toaster />
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800">Create an Account</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="w-full bg-gradient-to-r from-secondaryCustom to-primaryCustom text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
+          >
+            {status === 'loading' ? 'Signing up...' : 'Sign Up'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500">
+          Already have an account?{' '}
+          <span
+            className="text-primaryCustom-dark hover:underline cursor-pointer"
+            onClick={() => router.push('./login')}
+          >
+            Sign in
+          </span>
+        </p>
       </div>
-      <form className="border-2 py-5 w-75 place-items-center rounded shadow-sm" onSubmit={handleSubmit}>
-        <div className="col-10">
-          <label htmlFor="inputEmail4" className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            id="inputEmail4"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-10">
-          <label htmlFor="inputPassword4" className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            id="inputPassword4"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-10">
-          <label htmlFor="inputName" className="form-label">Name</label>
-          <input
-            type="text"
-            className="form-control"
-            id="inputName"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-10 py-4">
-        </div>
-        <div className="col-10">
-          <button type="submit" className="btn btn-primary">Sign Up</button>
-        </div>
-      </form>
     </div>
   );
 }

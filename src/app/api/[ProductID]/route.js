@@ -1,4 +1,5 @@
 import db from "../dbConect";
+import { increaseTagScore } from "../increaseTagScore";
 
 // PUT method to update product details or increment click count
 export async function PUT(req, { params }) {
@@ -19,19 +20,12 @@ export async function PUT(req, { params }) {
         return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
       }
 
-      if (CustomerID) {
-        const [product_tags] = await db.execute(`SELECT TagID FROM products WHERE ProductID = ?`, [ProductID]);
-
-        if (product_tags.length > 0 && product_tags[0].TagID) {
-          const tagIds = product_tags[0].TagID.split(',').map(id => id.trim());
-          for (const tagID of tagIds) {
-            await db.execute(`
-              INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
-              VALUES (?, ?, 1)
-              ON DUPLICATE KEY UPDATE Score = Score + 1
-            `, [CustomerID, tagID]);
-          }
-        }
+     if (CustomerID) {
+        await increaseTagScore(CustomerID, ProductID, 1);
+         await db.execute(`
+          INSERT INTO ground_truth_logs (CustomerID, ProductID, ActionType)
+          VALUES (?, ?, 'click')
+        `, [CustomerID, ProductID]);
       }
 
       return new Response(JSON.stringify({ success: true, message: "Click count and score updated" }), { status: 200 });

@@ -6,6 +6,16 @@ export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [form, setForm] = useState({})
 
+  // Format ngày theo yyyy-MM-dd để tránh lệch tháng
+  function formatDateForInput(dateStr) {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0') // getMonth() từ 0–11
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}` // Trả về chuỗi hợp lệ cho input type="date"
+  }
+
   useEffect(() => {
     const fetchCustomer = async () => {
       const CustomerID = localStorage.getItem('customerId')
@@ -15,14 +25,16 @@ export default function AccountPage() {
         const res = await fetch(`/api/customer/${CustomerID}`)
         const data = await res.json()
         setCustomer(data)
-        setForm(data)
+        setForm({
+          ...data,
+          DateOfBirth: formatDateForInput(data.DateOfBirth),
+        })
       } catch (error) {
         console.error('Error fetching customer:', error)
       }
     }
     fetchCustomer()
   }, [])
-  console.log(customer)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -61,7 +73,7 @@ export default function AccountPage() {
         <InputField label="Phone Number" name="PhoneNumber" value={form.PhoneNumber} onChange={handleChange} disabled={!isEditing} />
         <InputField label="Date of birth" name="DateOfBirth" type="date" value={form.DateOfBirth} onChange={handleChange} disabled={!isEditing} />
         <div className="md:col-span-2">
-        <InputField label="Address" name="Address" value={form.Address} onChange={handleChange} disabled={!isEditing} />
+          <InputField label="Address" name="Address" value={form.Address} onChange={handleChange} disabled={!isEditing} />
         </div>
       </div>
 

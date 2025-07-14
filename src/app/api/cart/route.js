@@ -1,6 +1,6 @@
-import db from '../dbConect'; // Ensure correct path to your DB connection
+import db from '../dbConect';
+import { increaseTagScore } from '../increaseTagScore';
 
-// POST method to add product to cart
 export async function POST(req) {
   const { CustomerID, ProductID, Quantity } = await req.json();
 
@@ -12,9 +12,12 @@ export async function POST(req) {
   }
 
   try {
-    const [[stock]] = await db.execute(`SELECT Stock FROM Products WHERE ProductID = ?`, [ProductID]);
+    const [[stock]] = await db.execute(
+      `SELECT Stock FROM Products WHERE ProductID = ?`,
+      [ProductID]
+    );
 
-    if (stock?.Stock < Quantity) {
+    if (!stock || stock.Stock < Quantity) {
       return new Response(
         JSON.stringify({ message: 'Insufficient stock.' }),
         { status: 400 }
@@ -38,27 +41,15 @@ export async function POST(req) {
       );
     }
 
-    // 🟩 TĂNG ĐIỂM TƯƠNG TÁC CHO USER VỚI TAG CỦA SẢN PHẨM
-   // Lấy các tag của sản phẩm
-    const [tags] = await db.execute(`
-      SELECT TagID FROM products WHERE ProductID = ?
-    `, [ProductID]);
- 
-    if (tags.length === 0) {
-      return new Response(JSON.stringify({ error: 'Không tìm thấy sản phẩm' }), { status: 404 });
-    }
+    // ✅ Cộng điểm hành vi “thêm vào giỏ”
+    await increaseTagScore(CustomerID, ProductID, 2);
 
-    const tagString = tags[0].TagID; // Ví dụ: "1,4,7"
-    const tagIds = tagString.split(',').map(tag => parseInt(tag.trim())).filter(Number.isInteger);
+    // ✅ Log hành vi “add_to_cart” đúng loại
+    await db.execute(`
+      INSERT INTO ground_truth_logs (CustomerID, ProductID, ActionType)
+      VALUES (?, ?, 'add_to_cart')
+    `, [CustomerID, ProductID]);
 
-    // Duyệt từng TagID và cập nhật Score
-    for (const tagId of tagIds) {
-      await db.execute(`
-        INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
-        VALUES (?, ?, 2)
-        ON DUPLICATE KEY UPDATE Score = Score + 2
-      `, [CustomerID, tagId]);
-    }
     return new Response(
       JSON.stringify({ message: 'Product added to cart successfully.' }),
       { status: 200 }
@@ -73,7 +64,7 @@ export async function POST(req) {
   }
 }
 
-// GET method to retrieve cart items for a specific customer
+
 export async function GET(req) {
   try {
     // Extract CustomerID from query string (URL)

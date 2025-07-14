@@ -41,7 +41,6 @@ export default function ProductSalesPieChart() {
           ))}
         </Pie>
         <Tooltip />
-        <Legend />
       </PieChart>
     </ResponsiveContainer>
   );

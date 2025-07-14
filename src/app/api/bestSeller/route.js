@@ -21,6 +21,8 @@ export async function GET(req) {
         ANY_VALUE(p.Author) AS Author,
         ANY_VALUE(p.Description) AS Description,
         ANY_VALUE(pi.ImageURL) AS image,
+        ANY_VALUE(p.Rating) AS Rating,
+        ANY_VALUE(p.RatingCount) AS RatingCount,
         SUM(r.Quantity) AS TotalSoldThisWeek
       FROM revenue r
       JOIN products p ON r.ProductID = p.ProductID
@@ -51,6 +53,8 @@ export async function GET(req) {
           ANY_VALUE(p.Price) AS Price,
           ANY_VALUE(p.Author) AS Author,
           ANY_VALUE(p.Description) AS Description,
+          ANY_VALUE(p.Rating) AS Rating,
+          ANY_VALUE(p.RatingCount) AS RatingCount,
           ANY_VALUE(pi.ImageURL) AS image,
           SUM(r.Quantity) AS TotalSoldAllTime
         FROM revenue r
@@ -75,6 +79,8 @@ export async function GET(req) {
           ANY_VALUE(p.Author) AS Author,
           ANY_VALUE(p.Description) AS Description,
           ANY_VALUE(pi.ImageURL) AS image,
+          ANY_VALUE(p.Rating) AS Rating,
+          ANY_VALUE(p.RatingCount) AS RatingCount,
           SUM(r.Quantity) AS TotalSoldAllTime
         FROM revenue r
         JOIN products p ON r.ProductID = p.ProductID

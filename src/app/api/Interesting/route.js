@@ -30,6 +30,14 @@ export async function GET(req) {
       ORDER BY TotalScore DESC
       LIMIT 4;
     `, [CustomerID]);
+    
+    await Promise.all(
+      products.map((item, index) =>
+        db.execute(`
+          INSERT INTO recommended_logs (CustomerID, ProductID, RankPosition)
+          VALUES (?, ?, ?)`, [CustomerID, item.ProductID, index + 1])
+      )
+);
 
     return new Response(JSON.stringify({ products }), { status: 200 });
   } catch (err) {

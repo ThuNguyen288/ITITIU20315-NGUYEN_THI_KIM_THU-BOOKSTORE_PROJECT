@@ -1,7 +1,7 @@
 import db from "../../dbConect";
 import { format } from "date-fns";
 
-export async function POST(req) {
+export async function POST() {
   try {
     const today = new Date();
     const lastWeek = new Date();
@@ -17,6 +17,7 @@ export async function POST(req) {
     const [revenues] = await db.execute(`
       SELECT 
         r.ProductID,
+        p.CategoryID,
         p.Price,
         p.OriginalPrice,
         p.Clicked,
@@ -32,34 +33,55 @@ export async function POST(req) {
       GROUP BY r.ProductID
     `, [lastWeekStr, lastWeekStr, twoWeeksAgoStr, twoWeeksAgoStr, lastWeekStr, lastWeekStr, twoWeeksAgoStr, twoWeeksAgoStr]);
 
+    // Lấy Top-N theo CategoryID dựa trên customer_tag_scores
+    const [topCategoryRaw] = await db.execute(`
+      SELECT 
+        p.CategoryID,
+        p.ProductID,
+        SUM(cts.Score) AS TotalScore
+      FROM customer_tag_scores cts
+      JOIN products p ON FIND_IN_SET(cts.TagID, p.TagID)
+      GROUP BY p.CategoryID, p.ProductID
+      ORDER BY p.CategoryID, TotalScore DESC
+    `);
+
+    const topCategoryMap = new Map();
+    for (const item of topCategoryRaw) {
+      const list = topCategoryMap.get(item.CategoryID) || [];
+      if (list.length < 3) {
+        list.push(item.ProductID);
+        topCategoryMap.set(item.CategoryID, list);
+      }
+    }
+
     let suggestionCandidates = [];
 
     for (const row of revenues) {
-      const { ProductID, Price, OriginalPrice, Clicked, QtyThisWeek, QtyLastWeek, Qty2WeeksAgo, RevenueThisWeek, RevenueLastWeek, Revenue2WeeksAgo, discount } = row;
-
+      const { ProductID, CategoryID, Price, OriginalPrice, Clicked, QtyThisWeek, QtyLastWeek, Qty2WeeksAgo, RevenueThisWeek, RevenueLastWeek, Revenue2WeeksAgo, discount } = row;
       const conversionRate = Clicked > 0 ? QtyThisWeek / Clicked : 0;
+      const isTopCategory = topCategoryMap.get(CategoryID)?.includes(ProductID);
 
       let suggestionType = null;
       let reason = "";
       let suggestedPrice = parseFloat(Price);
+      let importanceScore = isTopCategory ? 1000 : 0;
 
-      // Đề xuất giảm giá (DECREASE)
-      if (Clicked >= 20 &&
-          conversionRate < 0.05 &&
-          RevenueThisWeek < RevenueLastWeek &&
-          RevenueLastWeek < Revenue2WeeksAgo) {
+      if (
+        Clicked >= 20 &&
+        conversionRate < 0.05 &&
+        RevenueThisWeek < RevenueLastWeek &&
+        RevenueLastWeek < Revenue2WeeksAgo
+      ) {
         suggestionType = "DECREASE";
-        suggestedPrice = parseFloat((Price * 0.9).toFixed(2));
-        reason = "High clicks but low conversion, revenue decreasing 2 weeks";
-      }
-      // Đề xuất tăng giá (INCREASE) - reset về giá gốc
-      else if (discount !== 0 &&
-               Price < OriginalPrice &&
-               RevenueThisWeek > RevenueLastWeek &&
-               RevenueLastWeek > Revenue2WeeksAgo) {
+        reason = "High clicks but low conversion, revenue decreasing. Consider increasing discount.";
+      } else if (
+        discount > 0 &&
+        Price < OriginalPrice &&
+        RevenueThisWeek > RevenueLastWeek &&
+        RevenueLastWeek > Revenue2WeeksAgo
+      ) {
         suggestionType = "INCREASE";
-        suggestedPrice = parseFloat(OriginalPrice);
-        reason = "Currently discounted, revenue increasing 2 weeks - suggest reset to original price";
+        reason = "Currently discounted, revenue rising. Consider removing discount.";
       }
 
       if (suggestionType) {
@@ -69,69 +91,55 @@ export async function POST(req) {
           SuggestedPrice: suggestedPrice,
           SuggestionType: suggestionType,
           Reason: reason,
-          importanceScore: 9999
+          importanceScore
         });
       }
     }
 
-    // Đảm bảo đủ ít nhất 4 gợi ý
+    // Backup nếu chưa đủ 4
     const needed = Math.max(4 - suggestionCandidates.length, 0);
-
     if (needed > 0) {
       const excludedIds = suggestionCandidates.map(s => s.ProductID);
-      let lowSoldProducts = [];
+      const placeholders = excludedIds.map(() => '?').join(', ');
 
-      if (excludedIds.length > 0) {
-        const placeholders = excludedIds.map(() => '?').join(', ');
+      let [backup] = excludedIds.length
+        ? await db.execute(`
+            SELECT ProductID, Price, Sold
+            FROM products
+            WHERE ProductID NOT IN (${placeholders})
+            ORDER BY Sold ASC
+            LIMIT ${needed}
+          `, excludedIds)
+        : await db.execute(`
+            SELECT ProductID, Price, Sold
+            FROM products
+            ORDER BY Sold ASC
+            LIMIT ${needed}
+          `);
 
-        const [result] = await db.execute(`
-          SELECT ProductID, Price, Sold
-          FROM products
-          WHERE ProductID NOT IN (${placeholders})
-          ORDER BY Sold ASC
-          LIMIT ${needed}  -- fix LIMIT here
-        `, [...excludedIds]);
-
-        lowSoldProducts = result;
-      } else {
-        const [result] = await db.execute(`
-          SELECT ProductID, Price, Sold
-          FROM products
-          ORDER BY Sold ASC
-          LIMIT ${needed}  -- fix LIMIT here
-        `);
-
-        lowSoldProducts = result;
-      }
-
-      for (const row of lowSoldProducts) {
+      for (const row of backup) {
         suggestionCandidates.push({
           ProductID: row.ProductID,
           OldPrice: row.Price,
           SuggestedPrice: row.Price,
           SuggestionType: "NO_CHANGE",
-          Reason: "Low sales product - consider promotion or review",
+          Reason: "Low sales product - consider review",
           importanceScore: 0
         });
       }
     }
 
-    // Kiểm tra trùng ProductID trong bảng price_suggestions
-    for (const suggestion of suggestionCandidates) {
-      const { ProductID, OldPrice, SuggestedPrice, SuggestionType, Reason } = suggestion;
-
+    for (const s of suggestionCandidates) {
       const [exists] = await db.execute(`
         SELECT COUNT(*) as count FROM price_suggestions WHERE ProductID = ?
-      `, [ProductID]);
+      `, [s.ProductID]);
 
       if (exists[0].count === 0) {
         await db.execute(`
           INSERT INTO price_suggestions
-            (ProductID, OldPrice, SuggestedPrice, SuggestionType, Reason, CreatedAt)
+          (ProductID, OldPrice, SuggestedPrice, SuggestionType, Reason, CreatedAt)
           VALUES (?, ?, ?, ?, ?, NOW())
-        `, [ProductID, OldPrice, SuggestedPrice, SuggestionType, Reason]);
-      } else {
-        console.log(`ProductID ${ProductID} already exists in price_suggestions. Skipping.`);
+        `, [s.ProductID, s.OldPrice, s.SuggestedPrice, s.SuggestionType, s.Reason]);
       }
     }
 
@@ -146,6 +154,7 @@ export async function POST(req) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
 }
+
 
 
 export async function GET() {

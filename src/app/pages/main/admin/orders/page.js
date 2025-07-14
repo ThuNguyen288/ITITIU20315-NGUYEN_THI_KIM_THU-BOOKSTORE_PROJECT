@@ -61,6 +61,7 @@ return (
               <tr>
                 <th className="border px-4 py-3 text-center w-16">#</th>
                 <th className="border px-4 py-3 text-center">Customer</th>
+                <th className="border px-4 py-3 text-center">Phone</th>
                 <th className="border px-4 py-3 text-center w-32">Order Date</th>
                 <th className="border px-4 py-3 text-center w-32">Total</th>
                 <th className="border px-4 py-3 text-center w-48">Status</th>
@@ -78,6 +79,7 @@ return (
                       {index + 1}
                     </td>
                     <td className="border px-4 py-2 text-center">{order.Name}</td>
+                    <td className="border px-4 py-2 text-center">{order.Phone}</td>
                     <td className="border px-4 py-2 text-center">{formattedDate}</td>
                     <td className="border px-4 py-2 text-center">{order.Total} VND</td>
                     <td className="border px-4 py-2 text-center">

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import TextField from "@mui/material/TextField";
 import RemoveIcon from '@mui/icons-material/Remove';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -15,6 +17,37 @@ export default function Products() {
   const [sortConfig, setSortConfig] = useState({ key: "Name", direction: "asc" });
 
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProducts = products
+    .filter((p) => p.Name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      const { key, direction } = sortConfig;
+      if (!a[key] || !b[key]) return 0;
+
+      if (typeof a[key] === "number") {
+        return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
+      } else {
+        return direction === "asc"
+          ? a[key].localeCompare(b[key])
+          : b[key].localeCompare(a[key]);
+      }
+    });
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />;
+  };
+
+  const handleSort = (key) => {
+  setSortConfig((prev) => {
+    if (prev.key === key) {
+      return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+    } else {
+      return { key, direction: "asc" };
+    }
+  });
+};
 
   useEffect(() => {
     async function fetchProducts() {
@@ -110,24 +143,43 @@ export default function Products() {
           <p className="text-center text-red-600">{error}</p>
         ) : (
           <div className="overflow-x-auto">
-            <button onClick={handleAddClick} className="bg-rose-500 hover:bg-rose-600 text-white font-medium px-6 py-2 rounded-lg shadow-md transition duration-300 mb-2 float-right flex">
-              Add
-            </button>
+            <div className="flex justify-between items-center m-4, m-3">
+              <TextField
+                label="Search by Name"
+                variant="outlined"
+                size="small"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button onClick={handleAddClick} className="bg-rose-500 hover:bg-rose-600 text-white font-medium px-6 py-2 rounded-lg shadow-md transition duration-300 mb-2 float-right flex">
+                Add
+              </button>
+            </div>
             <table className="min-w-full border border-gray-200 bg-white shadow-md text-center">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border px-4 py-2 w-1/12">ID</th>
                   <th className="border px-4 py-2 w-1/12">Image</th>
-                  <th className="border px-4 py-2">Name</th>
-                  <th className="border px-4 py-2 w-1/6">Price</th>
-                  <th className="border px-4 py-2 w-1/6">Cost</th>
-                  <th className="border px-4 py-2 w-1/12">Stock</th>
-                  <th className="border px-4 py-2 w-1/12">Discount (%)</th>
+                  <th onClick={() => handleSort("Name")} className="border px-4 py-2 cursor-pointer">
+                    Name {getSortIcon("Name")}
+                  </th>
+                  <th onClick={() => handleSort("Price")} className="border px-4 py-2 w-1/6 cursor-pointer">
+                    Price {getSortIcon("Price")}
+                  </th>
+                  <th onClick={() => handleSort("Cost")} className="border px-4 py-2 w-1/6 cursor-pointer">
+                    Cost {getSortIcon("Cost")}
+                  </th>
+                  <th onClick={() => handleSort("Stock")} className="border px-4 py-2 w-1/12 cursor-pointer">
+                    Stock {getSortIcon("Stock")}
+                  </th>
+                  <th onClick={() => handleSort("discount")} className="border px-4 py-2 w-1/12 cursor-pointer">
+                    Discount (%) {getSortIcon("discount")}
+                  </th>
                   <th className="border px-4 py-2 w-1/12 text-red-500">Delete</th>
                 </tr>
               </thead>
               <tbody>
-                {products.map((product, index) => (
+                {filteredProducts.map((product, index) => (
                   <tr key={product.ProductID} className="hover:bg-gray-50">
                     <td className="border px-4 py-2">{index + 1}</td>
                     <td className="border px-4 py-2">

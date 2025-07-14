@@ -1,61 +1,60 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '/src/app/context/AuthContext'; // Import context
+import { useAuth } from '/src/app/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import Logo from '/public/Logo/logo.png';
 
 export default function Login() {
-  const { login } = useAuth(); // Sử dụng function login từ context
+  const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setStatus('loading');
     setError('');
-  
+
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
-  
-      // Lưu thông tin user và token vào localStorage qua context
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+
       login(data.user.token, {
         id: data.user.id,
         name: data.user.name,
         role_id: data.user.role_id,
       });
-  
-      router.push('/pages/main/customer/dashboard'); // Redirect tới dashboard
+
+      router.push('/pages/main/customer/dashboard');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setStatus('idle');
     }
   };
-  
-  return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <Image alt="Your Company" src={Logo} className="mx-auto h-10 w-auto" />
-        <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
-          Sign in to your account
-        </h2>
-      </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-secondaryCustom to-primaryCustom">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div className="text-center">
+          <Image src={Logo} alt="Logo" className="mx-auto h-10 w-auto" />
+          <h2 className="mt-6 text-2xl font-bold text-gray-800">Sign in to your account</h2>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-1">
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email Address
             </label>
             <input
               type="email"
@@ -63,11 +62,13 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10 p-2"
+              placeholder="you@example.com"
+              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
             />
           </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+
+          <div className="space-y-1">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
               Password
             </label>
             <input
@@ -76,25 +77,36 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10 p-2"
+              placeholder="••••••••"
+              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
             />
           </div>
+
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <div>
-            <button
-              type="submit"
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline focus:outline-2 focus:outline-indigo-600"
-            >
-              Sign in
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="w-full bg-gradient-to-r from-secondaryCustom to-primaryCustom text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
+          >
+            {status === 'loading' ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
-        <p className="mt-10 text-center text-sm text-gray-500">
-          Do not have an account?{' '}
-          <Link href="./register" className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Register
-          </Link>
-        </p>
+
+        <div className="text-center text-sm text-gray-500 space-y-1 pt-2">
+          <p>
+            Forgot password?{' '}
+            <Link href="./forgotPassword" className="text-primaryCustom-dark hover:underline">
+              Reset here
+            </Link>
+          </p>
+          <p>
+            Don’t have an account?{' '}
+            <Link href="./register" className="text-primaryCustom-dark hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
