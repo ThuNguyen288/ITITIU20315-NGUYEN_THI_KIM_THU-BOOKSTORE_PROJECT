@@ -78,7 +78,7 @@ export default function OrderDetails({ params }) {
     console.log("Status: " + orderStatus);
   }, [orderStatus]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className='text-center'>Loading...</div>;
   if (error) return <div className="text-red-600">{error}</div>;
   if (items.length === 0) return <div>Order not found</div>;
 

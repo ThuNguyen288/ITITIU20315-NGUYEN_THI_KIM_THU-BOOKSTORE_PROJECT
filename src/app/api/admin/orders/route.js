@@ -4,7 +4,7 @@ export async function GET() {
   try {
     // Fetch all orders from the database
     const [orders] = await db.execute(`
-      SELECT O.* , C.Name
+      SELECT O.* , C.Email
       FROM orders AS O
       LEFT JOIN Customers AS C
       ON O.CustomerID = C.CustomerID
@@ -14,8 +14,7 @@ export async function GET() {
           WHEN 'Shipped' THEN 2
           WHEN 'Completed' THEN 3
           ELSE 4
-        END ASC,
-        OrderDate ASC;
+        END ASC
         `
       );
 

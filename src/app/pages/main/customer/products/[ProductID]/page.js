@@ -4,6 +4,7 @@ import RatingDisplay from '@/app/components/DisplayRating';
 import HotProducts from '@/app/components/HotProducts';
 import RelatedItems from '@/app/components/RelatedItems';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 const ProductDetail = ({ params }) => {
@@ -17,6 +18,7 @@ const ProductDetail = ({ params }) => {
   const [canEdit, setCanEdit] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [updatedProduct, setUpdatedProduct] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,6 +82,7 @@ const ProductDetail = ({ params }) => {
       if (!res.ok) throw new Error('Failed to update product');
       setProduct(updatedProduct);
       setEditingField(null);
+      router.refresh();
     } catch (err) {
       alert(err.message);
     }
@@ -172,14 +175,56 @@ const ProductDetail = ({ params }) => {
             )}
           </div>
 
-          <div className="mt-6 text-right">
-            <p className="text-xl font-semibold cursor-pointer" onDoubleClick={() => handleDoubleClick('Price')}>
-              {editingField === 'Price' ? (
-                <input type="number" name="Price" value={updatedProduct.Price || ''} onChange={handleInputChange} onBlur={handleBlur} className="border p-2 w-32 text-right rounded" autoFocus />
-              ) : (
-                `${product.Price} VND`
+         <div className="mt-6 text-right">
+            <div className="flex justify-end items-center gap-4">
+              <p
+                className={`text-xl font-semibold cursor-pointer ${
+                  Number(product.discount) > 0 ? 'line-through text-gray-400' : ''
+                }`}
+                onDoubleClick={() => handleDoubleClick('OriginalPrice')}
+              >
+                {editingField === 'OriginalPrice' ? (
+                  <input
+                    type="number"
+                    name="OriginalPrice"
+                    value={updatedProduct.OriginalPrice || ''}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className="border p-2 w-32 text-right rounded"
+                    autoFocus
+                  />
+                ) : (
+                  `${product.OriginalPrice} VND`
+                )}
+              </p>
+
+              {Number(product.discount) > 0 && (
+                <p
+                  className="text-xl font-semibold cursor-pointer text-red-500"
+                  onDoubleClick={() => handleDoubleClick('discount')}
+                >
+                  {editingField === 'discount' ? (
+                    <input
+                      type="number"
+                      name="discount"
+                      value={updatedProduct.discount || ''}
+                      onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      className="border p-2 w-24 text-right rounded text-red-500"
+                      autoFocus
+                    />
+                  ) : (
+                    `-${product.discount} %`
+                  )}
+                </p>
               )}
-            </p>
+            </div>
+
+            {Number(product.discount) > 0 && (
+              <p className="text-xl font-semibold text-red-500 mt-2">
+                {product.Price} VND
+              </p>
+            )}
           </div>
 
           {roleID === '1' && (

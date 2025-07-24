@@ -1,91 +1,155 @@
-import db from '../dbConect';
-import { increaseTagScore } from '../increaseTagScore';
+import db from "../dbConect";
+
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const { CustomerID, items, total, name, address, phone, email, paymentMethod } = await req.json();
+  const body = await req.json();
+  const { CustomerID, total, cartItems, Address, Phone, PaymentMethod, Name } = body;
+  console.log("📦 Dữ liệu nhận từ frontend:", { Address, Name, Phone });
 
-  if (!CustomerID || !items || items.length === 0 || !total) {
-    return new Response(
-      JSON.stringify({ message: 'Missing required fields.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
 
   try {
-    await db.query('START TRANSACTION');
-
-    // 1️⃣ Tạo đơn hàng
-    const [orderResult] = await db.query(`
-      INSERT INTO orders (CustomerID, Total, OrderDate, Address, Phone, Name, PaymentMethod)
-      VALUES (?, ?, NOW(), ?, ?, ?, ?)
-    `, [CustomerID, total, address, phone, name, paymentMethod]);
-
+    // STEP 1: Insert into orders
+    const [orderResult] = await connection.query(
+      `INSERT INTO orders (CustomerID, Total, OrderDate, Status, Address, Phone, PaymentMethod, Name) 
+       VALUES (?, ?, NOW(), 'Pending', ?, ?, ?, ?)`,
+      [CustomerID, total, Address, Phone, PaymentMethod, Name]
+    );
     const orderId = orderResult.insertId;
+    console.log("✅ STEP 1: orderId =", orderId);
 
-    // 2️⃣ Kiểm tra kho
-    for (const item of items) {
-      const [stockCheck] = await db.execute("SELECT Stock FROM products WHERE ProductID = ?", [item.ProductID]);
-      if (stockCheck.length === 0 || stockCheck[0].Stock < item.Quantity) {
-        throw new Error(`Sản phẩm ID ${item.ProductID} không đủ hàng`);
+    // STEP 2: Check stock and prepare orderdetails
+    const orderDetailsData = [];
+    for (const item of cartItems) {
+      const [productRows] = await connection.query(
+        "SELECT Stock FROM products WHERE ProductID = ?",
+        [item.ProductID]
+      );
+      if (!productRows.length || productRows[0].Stock < item.Quantity) {
+        throw new Error("Not enough stock for ProductID " + item.ProductID);
+      }
+      orderDetailsData.push([orderId, item.ProductID, item.Quantity, item.Price]);
+    }
+    console.log("✅ STEP 2: Stock checked");
+
+    // STEP 3: Insert into orderdetails
+    await connection.query(
+      "INSERT INTO orderdetails (OrderID, ProductID, Quantity, Price) VALUES ?",
+      [orderDetailsData]
+    );
+    console.log("✅ STEP 3: OrderDetails inserted");
+
+    // STEP 4: Insert into revenue (based on cost)
+    for (const item of cartItems) {
+      const [costRows] = await connection.query(
+        "SELECT Cost FROM products WHERE ProductID = ?",
+        [item.ProductID]
+      );
+      const cost = costRows[0]?.Cost || 0;
+      await connection.query(
+        `INSERT INTO revenue (ProductID, Quantity, Price, Sale_date, Cost)
+        VALUES (?, ?, ?, NOW(), ?)`,
+        [
+          item.ProductID,
+          item.Quantity,
+          item.Price,
+          cost,
+        ]
+      );
+
+    }
+    console.log("✅ STEP 4: Revenue inserted");
+
+    // STEP 5: Update stock
+    for (const item of cartItems) {
+      await connection.query(
+        `UPDATE products SET Stock = Stock - ? WHERE ProductID = ?`,
+        [item.Quantity, item.ProductID]
+      );
+    }
+    console.log("✅ STEP 5: Stock updated");
+
+    // STEP 6: Notification for low stock
+    for (const item of cartItems) {
+      const [stockRows] = await connection.query(
+        "SELECT Stock FROM products WHERE ProductID = ?",
+        [item.ProductID]
+      );
+      if (stockRows[0].Stock < 5) {
+        await connection.query(
+          `INSERT INTO notifications (type, content, isRead, created_at)
+           VALUES (?, ?, 0, NOW())`,
+          ['low_stock', `Sản phẩm ID ${item.ProductID} sắp hết hàng`]
+        );
       }
     }
+    console.log("✅ STEP 6: Low-stock notifications done");
 
-    // 3️⃣ Chèn chi tiết đơn hàng + doanh thu
-    const orderDetailsValues = items.map(item => `(${orderId}, ${item.ProductID}, ${item.Quantity}, ${item.Price})`).join(',');
-    await db.query(`INSERT INTO orderdetails (OrderID, ProductID, Quantity, Price) VALUES ${orderDetailsValues}`);
+    // STEP 7: Delete from cart
+    await connection.query(
+      `DELETE FROM cart WHERE CustomerID = ?`,
+      [CustomerID]
+    );
+    console.log("✅ STEP 7: Cart deleted");
 
-    const revenueValues = items.map(item =>
-      `(${item.ProductID}, ${item.Quantity}, ${item.Price}, ${item.Cost * item.Quantity || 0}, CURDATE())`).join(',');
-    await db.query(`INSERT INTO revenue (ProductID, Quantity, Price, Cost, Sale_date) VALUES ${revenueValues}`);
+    // STEP 8: Order Notification
+    for (const item of cartItems) {
+  const message = `Bạn đã đặt sản phẩm ${item.Name} thành công!`;
 
-    // 4️⃣ Cập nhật kho
-    for (const item of items) {
-      await db.query(`
-        UPDATE products
-        SET Stock = Stock - ?, Sold = Sold + ?
-        WHERE ProductID = ?
-      `, [item.Quantity, item.Quantity, item.ProductID]);
+  await connection.query(
+    `INSERT INTO notifications 
+     (CustomerID, OrderID, ProductID, Message, Status, CreatedAt, UpdatedAt) 
+     VALUES (?, ?, ?, ?, 'Unread', NOW(), NOW())`,
+    [CustomerID, orderId, item.ProductID, message]
+  );
+  }
+    console.log("✅ STEP 8: Notifications inserted"); 
+    // STEP 9: Increase tag scores + log ground truth
+  for (const item of cartItems) {
+  // 1. Lấy tag ID từ bảng products (TagID lưu dạng "1,3,5")
+  const [rows] = await connection.query(
+    `SELECT TagID FROM products WHERE ProductID = ?`,
+    [item.ProductID]
+  );
+
+  if (rows.length && rows[0].TagID) {
+    const tagIds = rows[0].TagID
+      .split(',')
+      .map(id => parseInt(id.trim()))
+      .filter(id => !isNaN(id));
+
+    for (const tagId of tagIds) {
+      // 2. Cộng điểm vào bảng customer_tag_scores
+      await connection.query(`
+        INSERT INTO customer_tag_scores (CustomerID, TagID, Score)
+        VALUES (?, ?, 2)
+        ON DUPLICATE KEY UPDATE Score = Score + 2
+      `, [CustomerID, tagId]);
     }
+  }
 
-    // 5️⃣ Gửi thông báo hết hàng
-    for (const item of items) {
-      const [product] = await db.execute("SELECT Name, Stock FROM products WHERE ProductID = ?", [item.ProductID]);
-      if (product.length > 0) {
-        const name = product[0].Name;
-        const stock = product[0].Stock;
-        if (stock === 0) {
-          await db.execute(`INSERT INTO notifications (ProductID, Message, CreatedAt, Status) VALUES (?, ?, NOW(), 'Unread')`, [item.ProductID, `${name} out of stock`]);
-        } else if (stock <= 10) {
-          await db.execute(`INSERT INTO notifications (ProductID, Message, CreatedAt, Status) VALUES (?, ?, NOW(), 'Unread')`, [item.ProductID, `${name} low of stock`]);
-        }
-      }
-    }
+  // 3. Ghi lại ground truth log cho sản phẩm đã mua
+  await connection.query(
+    `INSERT INTO ground_truth_logs (CustomerID, ProductID, ActionType, CreatedAt)
+     VALUES (?, ?, 'purchase', NOW())`,
+    [CustomerID, item.ProductID]
+  );
+}
 
-    // 6️⃣ Xóa giỏ hàng
-    await db.query(`DELETE FROM cart WHERE CustomerID = ?`, [CustomerID]);
 
-    // 7️⃣ Gửi thông báo đơn hàng
-    await db.query(`
-      INSERT INTO notifications (CustomerID, OrderID, Message, CreatedAt, Status)
-      VALUES (?, ?, ?, NOW(), 'Unread')
-    `, [CustomerID, orderId, `New order from customer - ${email}, total: ${total}`]);
+    // STEP 10: Commit transaction
+    await connection.commit();
+    connection.release();
+    console.log("✅ STEP 10: Commit...");
 
-    // 8️⃣ Tăng điểm tag và ghi log ground truth
-    await Promise.all(items.map(async item => {
-      await increaseTagScore(CustomerID, item.ProductID, 5); // mua hàng: +5
-      await db.execute(`
-        INSERT INTO ground_truth_logs (CustomerID, ProductID, ActionType)
-        VALUES (?, ?, 'purchase')
-      `, [CustomerID, item.ProductID]);
-    }));
-
-    await db.query('COMMIT');
-
-    return new Response(JSON.stringify({ message: 'Order placed successfully', orderId }), { status: 201 });
+    return NextResponse.json({ success: true, orderId }, { status: 201 });
 
   } catch (error) {
-    await db.query('ROLLBACK');
-    console.error('Error placing order:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Failed to place order' }), { status: 500 });
+    await connection.rollback();
+    connection.release();
+    console.error("❌ Error:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

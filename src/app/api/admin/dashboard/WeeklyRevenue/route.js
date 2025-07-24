@@ -3,18 +3,14 @@ import db from "../../../dbConect";
 
 export async function GET() {
     try {
-        // Lấy ngày đầu tuần (Thứ Hai của tuần hiện tại)
-        const startOfWeek = `DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)`;
-
-        // Truy vấn doanh thu trong tuần hiện tại
         const [rows] = await db.execute(`
             SELECT 
-                DATE_FORMAT(Sale_date, '%W') AS Day,  -- Lấy tên ngày (Monday, Tuesday, ...)
+                DATE_FORMAT(Sale_date, '%W') AS Day,
                 COALESCE(SUM(Quantity * Cost), 0) AS Cost,
-                COALESCE(SUM(Total - Quantity * Cost), 0) AS Outfit,
-                MIN(Sale_date) AS SortDate  -- Thêm ngày sớm nhất trong nhóm để sắp xếp
+                COALESCE(SUM(Quantity * (Price - Cost)), 0) AS Outfit,
+                MIN(Sale_date) AS SortDate
             FROM revenue
-            WHERE Sale_date >= ${startOfWeek}
+            WHERE Sale_date >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
             GROUP BY Day
             ORDER BY SortDate;
         `);

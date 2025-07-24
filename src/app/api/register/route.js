@@ -7,7 +7,7 @@ export async function POST(req) {
     const body = await req.json();
     console.log('Request Body:', body); // Log incoming data
 
-    const { email, password, name} = body;
+    const { email, password} = body;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     if (!email || !password || !name) {
@@ -26,8 +26,8 @@ export async function POST(req) {
 
   
     const [result] = await db.execute(
-      'INSERT INTO customers (Name, Password, Email, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
-      [name, hashedPassword, email]
+      'INSERT INTO customers (Password, Email, created_at, updated_at) VALUES (?, ?, NOW(), NOW())',
+      [hashedPassword, email]
     );
     
 

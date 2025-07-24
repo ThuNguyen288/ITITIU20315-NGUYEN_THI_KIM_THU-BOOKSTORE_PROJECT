@@ -47,7 +47,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-secondaryCustom to-primaryCustom">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
         <div className="text-center">
-          <Image src={Logo} alt="Logo" className="mx-auto h-10 w-auto" />
+          <Image src={Logo} alt="Logo" className="mx-auto h-16 w-auto" />
           <h2 className="mt-6 text-2xl font-bold text-gray-800">Sign in to your account</h2>
         </div>
 

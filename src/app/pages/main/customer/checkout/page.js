@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 export default function Checkout() {
@@ -17,7 +18,7 @@ export default function Checkout() {
   const [error, setError] = useState(null);
   const validatePhoneNumber = (phone) => /^[0-9]{10,11}$/.test(phone);
 
-
+  const router = useRouter()
   const CustomerID = typeof window !== 'undefined' ? localStorage.getItem('customerId') || '' : '';
   const CustomerName = typeof window !== 'undefined' ? localStorage.getItem('customerName') || '' : '';
 
@@ -71,39 +72,36 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!validatePhoneNumber(phone)) {
-      alert('Invalid phone number! Please enter a valid one.');
-      return;
-    }
+  if (!address || !name || !phone) {
+    alert("Vui lòng nhập đầy đủ thông tin.");
+    return;
+  }
 
-    try {
-      const response = await fetch('/api/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          CustomerID,
-          CustomerName,
-          items: selectedItems,
-          subtotal,
-          shippingFee,
-          discount,
-          total,
-          address,
-          phone,
-          name,
-          email,
-          paymentMethod,
-          voucherCode,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to place order');
-      alert('Order placed successfully!');
-      localStorage.removeItem('selectedItems');
-      window.location.href = '/';
-    } catch (err) {
-      alert('Failed to place order. Please try again.');
-    }
-  };
+  const res = await fetch("/api/order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      Address: address,
+      Name: name,
+      Phone: phone,
+      cartItems: selectedItems,
+      total,
+      Email: email,
+      CustomerID,
+      PaymentMethod: paymentMethod,
+    })
+
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    alert("Đặt hàng thành công!");
+    router.push("/pages/main/customer/dashboard");
+  } else {
+    alert("Lỗi khi đặt hàng: " + data.message);
+  }
+};
+
 
   if (loading) {
     return <div className="text-center text-lg font-semibold">Loading...</div>;
@@ -150,7 +148,6 @@ export default function Checkout() {
           <div className="mt-4 text-right">
             <p>Subtotal: {subtotal} VND</p>
             <p>Shipping: {shippingFee} VND</p>
-            <p className="text-red-500">Discount: -{discount} VND</p>
             <p className="font-bold">Total: {total} VND</p>
             <button className="bg-green-500 text-white w-full mt-4 py-2 rounded" onClick={handlePlaceOrder}>Place Order</button>
           </div>

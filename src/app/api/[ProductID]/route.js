@@ -8,7 +8,7 @@ export async function PUT(req, { params }) {
     const { searchParams } = new URL(req.url);
     const CustomerID = searchParams.get("CustomerID");
 
-    const { Name, Price, Stock, increment } = await req.json();
+    const { Name, OriginalPrice, Stock, increment } = await req.json();
 
     if (typeof increment !== "undefined") {
       const [result] = await db.execute(
@@ -32,7 +32,7 @@ export async function PUT(req, { params }) {
     }
 
     // Update product info
-    if (!ProductID || !Name || !Price || !Stock) {
+    if (!ProductID || !Name || !OriginalPrice || !Stock) {
       return new Response(
         JSON.stringify({ error: "ProductID, Name, Price, and Stock are required" }),
         { status: 400 }
@@ -40,8 +40,8 @@ export async function PUT(req, { params }) {
     }
 
     const [result] = await db.execute(
-      "UPDATE products SET Name = ?, Price = ?, Stock = ? WHERE ProductID = ?",
-      [Name, Price, Stock, ProductID]
+      "UPDATE products SET Name = ?, OriginalPrice = ?, Stock = ? WHERE ProductID = ?",
+      [Name, OriginalPrice, Stock, ProductID]
     );
 
     if (result.affectedRows === 0) {

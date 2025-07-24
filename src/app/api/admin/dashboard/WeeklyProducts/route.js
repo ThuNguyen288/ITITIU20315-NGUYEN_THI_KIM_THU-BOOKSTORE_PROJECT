@@ -3,7 +3,7 @@ import db from "../../../dbConect";
 
 export async function GET(req) {
   try {
-    // Tính ngày đầu và cuối tuần hiện tại (Thứ 2 - Chủ nhật)
+    // B1: Tính ngày bắt đầu và kết thúc của tuần hiện tại (Thứ 2 - Chủ nhật)
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Thứ 2
     const weekEnd = endOfWeek(today, { weekStartsOn: 1 });     // Chủ nhật
@@ -11,11 +11,11 @@ export async function GET(req) {
     const weekStartStr = format(weekStart, "yyyy-MM-dd");
     const weekEndStr = format(weekEnd, "yyyy-MM-dd");
 
-    // B1: Lấy danh sách sản phẩm bán ra trong tuần từ bảng revenue
+    // B2: Lấy số lượng bán ra của từng sản phẩm trong tuần
     const [revenues] = await db.execute(`
       SELECT ProductID, SUM(Quantity) AS TotalSold
       FROM revenue
-      WHERE Sale_date >= ? AND Sale_date <= ?
+      WHERE Sale_date BETWEEN ? AND ?
       GROUP BY ProductID
     `, [weekStartStr, weekEndStr]);
 
@@ -23,7 +23,7 @@ export async function GET(req) {
       return new Response(JSON.stringify({ chartData: [] }), { status: 200 });
     }
 
-    // B2: Lấy ProductID -> TagID từ bảng products
+    // B3: Lấy TagID tương ứng từ bảng products
     const productIds = revenues.map(r => r.ProductID);
     const placeholders = productIds.map(() => "?").join(",");
     const [products] = await db.execute(
@@ -31,22 +31,31 @@ export async function GET(req) {
       productIds
     );
 
-    // B3: Gộp dữ liệu Sold + TagID
+    // B4: Gộp dữ liệu: TagID => Tổng Sold
     const tagSoldMap = {};
 
     for (const revenue of revenues) {
       const product = products.find(p => p.ProductID === revenue.ProductID);
       if (!product || !product.TagID) continue;
 
-      const tagIds = product.TagID.split(",").map(id => id.trim());
+      const tagIds = product.TagID
+        .split(",")
+        .map(id => id.trim())
+        .filter(id => id); // Loại bỏ tag rỗng
 
-      for (const tagId of tagIds) {
+      const uniqueTagIds = [...new Set(tagIds)];
+
+      for (const tagId of uniqueTagIds) {
         if (!tagSoldMap[tagId]) tagSoldMap[tagId] = 0;
-        tagSoldMap[tagId] += revenue.TotalSold;
+        tagSoldMap[tagId] += Number(revenue.TotalSold);
       }
     }
 
-    // B4: Lấy tên tag từ bảng tags
+    if (Object.keys(tagSoldMap).length === 0) {
+      return new Response(JSON.stringify({ chartData: [] }), { status: 200 });
+    }
+
+    // B5: Lấy tên Tag từ bảng tags
     const tagIds = Object.keys(tagSoldMap);
     const tagPlaceholders = tagIds.map(() => "?").join(",");
     const [tags] = await db.execute(
@@ -54,11 +63,11 @@ export async function GET(req) {
       tagIds
     );
 
-    // B5: Trả về dữ liệu đã gắn tên
+    // B6: Gộp dữ liệu cuối cùng
     const chartData = tags.map(tag => ({
       tag: tag.Name,
-      totalSold: tagSoldMap[tag.TagID] || 0
-    }));
+      totalSold: tagSoldMap[tag.TagID] || 0,
+    })).sort((a, b) => b.totalSold - a.totalSold); // Sắp xếp giảm dần
 
     return new Response(JSON.stringify({ chartData }), { status: 200 });
 

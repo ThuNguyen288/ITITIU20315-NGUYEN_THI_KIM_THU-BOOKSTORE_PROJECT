@@ -42,7 +42,7 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link href="/pages/main/customer/dashboard" className="flex items-center gap-2 no-underline">
-              <Image src={Logo} alt="Rainbow Logo" className="h-8 w-auto" />
+              <Image src={Logo} alt="Rainbow Logo" className="h-16 w-auto" />
               <h5 className="text-base font-medium text-gray-800">Rainbow</h5>
             </Link>
           </div>

@@ -29,7 +29,6 @@ export default function Cart() {
         setSelectedItems(normalizedCart);
         setLoading(false);
       } catch (err) {
-        console.error(err.message);
         setLoading(false);
       }
     }

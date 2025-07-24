@@ -59,7 +59,7 @@ export default function RecommendationStats() {
 
   return (
     <div
-      className="py-6 rounded-2xl shadow-md max-w-full mx-auto space-y-6 "
+      className="py-6 rounded-2xl shadow-md max-w-full mx-auto space-y-6 px-3 "
       style={{
         backgroundColor: "#FFF9F0", // background.surface
         color: "#3D3D3D", // neutral.dark
@@ -89,7 +89,13 @@ export default function RecommendationStats() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-
+      {data && (
+        <div className="text-center text-sm text-gray-600">
+          <p><strong>Precision@{4}</strong>: {data.PrecisionAtK}</p>
+          <p><strong>Recall@{4}</strong>: {data.RecallAtK}</p>
+          <p>Evaluated on <strong>{data.UsersEvaluated}</strong> users</p>
+        </div>
+      )}
       <p className="text-xs text-gray-500 pt-2">
         Data is based on the <code>ground_truth_logs</code> table. The <strong>“Correct Recommendations”</strong> column represents products suggested by the system that match user interests or actions.
       </p>

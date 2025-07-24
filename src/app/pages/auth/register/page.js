@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
@@ -6,14 +7,15 @@ import toast, { Toaster } from 'react-hot-toast';
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading'>('idle');
+  const [status, setStatus] = useState('idle');
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password || !name) {
-      return toast.error('All fields are required');
+
+    if (!email || !password) {
+      toast.error('All fields are required');
+      return;
     }
 
     setStatus('loading');
@@ -28,9 +30,9 @@ export default function SignUp() {
       if (!res.ok) throw new Error(data.message || 'Registration failed');
 
       toast.success('Registration successful!');
-      setTimeout(() => router.push('./login'), 2000);
-    } catch {
-      toast.error(err.message);
+      setTimeout(() => router.push('/pages/auth/login'), 2000);
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong');
     } finally {
       setStatus('idle');
     }
@@ -43,18 +45,6 @@ export default function SignUp() {
         <h2 className="text-2xl font-bold text-center text-gray-800">Create an Account</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
-              className="w-full px-4 py-3 border rounded-full text-sm focus:ring-2 focus:ring-primaryCustom-dark"
-              required
-            />
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
@@ -92,7 +82,7 @@ export default function SignUp() {
           Already have an account?{' '}
           <span
             className="text-primaryCustom-dark hover:underline cursor-pointer"
-            onClick={() => router.push('./login')}
+            onClick={() => router.push('/pages/auth/login')}
           >
             Sign in
           </span>

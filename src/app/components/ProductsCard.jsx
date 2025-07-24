@@ -15,7 +15,7 @@ export default function ProductList({ titleText, titleElement, fetchUrl }) {
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [sortOption, setSortOption] = useState("default");
-
+  const [roleId, setRoleId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 20;
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -104,7 +104,12 @@ export default function ProductList({ titleText, titleElement, fetchUrl }) {
     }
   };
 
-  const roleId = localStorage.getItem("roleId")
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedRole = localStorage.getItem("roleId");
+      setRoleId(storedRole);
+    }
+  }, []);
   const handleSortChange = (e) => setSortOption(e.target.value);
   const handlePageChange = (e, page) => setCurrentPage(page);
 
@@ -246,21 +251,26 @@ export default function ProductList({ titleText, titleElement, fetchUrl }) {
                       <div className="mt-2 flex justify-between items-center px-2 sm:px-4">
                         <div className="text-left">
                           {product.discount && product.discount > 0 ? (
-                            <>
-                              <span className="block text-xs sm:text-sm line-through text-gray-400">
-                                {product.OriginalPrice} VND
-                              </span>
-                              <span className="block text-sm sm:text-base md:text-lg font-bold text-red-500">
+                            <div className="flex flex-col items-start">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs sm:text-sm line-through text-gray-400">
+                                  {product.OriginalPrice} VND
+                                </span>
+                                <span className="text-xs sm:text-sm text-red-400">
+                                  -{product.discount}%
+                                </span>
+                              </div>
+                              <span className="text-sm sm:text-base md:text-lg font-bold text-red-500">
                                 {product.Price} VND
                               </span>
-                            </>
+                            </div>
                           ) : (
                             <span className="text-sm sm:text-base md:text-lg font-bold text-primaryCustom-dark">
                               {product.Price} VND
                             </span>
                           )}
                         </div>
-                        {roleId !== '2' && (
+                        {roleId !== 2 && (
                         <button
                           onClick={() => handleAddToCart(product.ProductID)}
                           className="p-2 bg-secondaryCustom hover:bg-secondaryCustom-dark rounded-full transition"

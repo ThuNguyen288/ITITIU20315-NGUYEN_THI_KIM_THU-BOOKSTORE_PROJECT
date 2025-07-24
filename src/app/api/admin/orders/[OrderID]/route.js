@@ -56,3 +56,43 @@ export async function GET(req, context) {
     );
   }
 }
+
+export async function PUT(req, context) {
+  try {
+    const { OrderID } = context.params;
+
+    if (!OrderID) {
+      return new Response(
+        JSON.stringify({ error: "OrderID is required" }),
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json();
+    const { Status } = body;
+
+    if (!Status) {
+      return new Response(
+        JSON.stringify({ error: "Status is required" }),
+        { status: 400 }
+      );
+    }
+
+    // Cập nhật trạng thái đơn hàng
+    const [result] = await db.execute(
+      `UPDATE orders SET Status = ? WHERE OrderID = ?`,
+      [Status, OrderID]
+    );
+
+    return new Response(
+      JSON.stringify({ message: "Status updated successfully", result }),
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("Error updating status:", err);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error", details: err.message }),
+      { status: 500 }
+    );
+  }
+}
