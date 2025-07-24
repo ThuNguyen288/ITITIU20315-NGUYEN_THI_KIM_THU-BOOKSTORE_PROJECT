@@ -27,13 +27,13 @@ A comprehensive web-based application designed to manage bookstore operations, i
 ---
 
 ##  Project Structure
-
+```
 bookstore_project/
 ├── backend/            Express.js REST API
 ├── frontend/           Next.js frontend interface
 ├── mydatabase.sql      SQL dump file for database setup
 └── README.md
-
+```
 
 
 ---
