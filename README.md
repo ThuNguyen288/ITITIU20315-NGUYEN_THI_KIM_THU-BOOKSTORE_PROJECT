@@ -1,10 +1,10 @@
-# 📚 Bookstore Project
+#  Bookstore Project
 
 A comprehensive web-based application designed to manage bookstore operations, including inventory, sales, and customer accounts.
 
 ---
 
-## 🚀 Features
+##  Features
 
 - **Book Browsing & Search** – Search by title, author, genre, or ISBN.
 - **Inventory Management** – Admins can add, update, or remove books.
@@ -16,7 +16,7 @@ A comprehensive web-based application designed to manage bookstore operations, i
 
 ---
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 - **Frontend:** React.js, Next.js
 - **Backend:** Node.js, Express.js
@@ -26,13 +26,14 @@ A comprehensive web-based application designed to manage bookstore operations, i
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 bookstore_project/
-├── backend/ # Express.js REST API
-├── frontend/ # Next.js frontend interface
-├── mydatabase.sql # SQL dump file for database setup
+├── backend/            Express.js REST API
+├── frontend/           Next.js frontend interface
+├── mydatabase.sql      SQL dump file for database setup
 └── README.md
+
 
 
 ---
