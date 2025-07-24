@@ -10,7 +10,7 @@ export async function POST(req) {
     const { email, password} = body;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    if (!email || !password || !name) {
+    if (!email || !password) {
       console.error('Missing fields:', body);
       return new Response(JSON.stringify({ error: 'All fields are required' }), { status: 400 });
     }
