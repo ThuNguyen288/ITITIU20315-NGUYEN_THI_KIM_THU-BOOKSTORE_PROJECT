@@ -118,7 +118,6 @@ mydatabase.sql (MySQL export)
 
 📬 Contact
 For questions or support:
-
-Email: thuthu2882002@gmail.com
-GitHub: ThuNguyen288
+- Email: thuthu2882002@gmail.com
+- GitHub: ThuNguyen288
 
