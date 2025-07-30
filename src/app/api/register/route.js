@@ -33,8 +33,6 @@ export async function POST(req) {
 
     console.log('Database Insertion Result:', result); // Log the result
 
-    await db.end();
-
     return new Response(
       JSON.stringify({ message: 'User registered successfully', userId: result.insertId }),
       { status: 200 }
